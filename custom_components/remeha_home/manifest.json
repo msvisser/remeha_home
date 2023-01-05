@@ -1,0 +1,12 @@
+{
+  "domain": "remeha_home",
+  "name": "Remeha Home",
+  "integration_type": "device",
+  "version": "0.1.0",
+  "config_flow": true,
+  "documentation": "https://github.com/msvisser/remeha_home",
+  "codeowners": [
+    "@msvisser"
+  ],
+  "iot_class": "cloud_polling"
+}

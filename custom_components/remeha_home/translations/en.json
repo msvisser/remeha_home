@@ -1,0 +1,11 @@
+{
+    "config": {
+        "step": {
+            "auth": {
+                "data": {
+                    "token": "Refresh Token"
+                }
+            }
+        }
+    }
+}
