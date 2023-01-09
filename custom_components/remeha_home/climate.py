@@ -164,10 +164,10 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
 
         # Temporarily override the coordinator state until the next poll
         self._data["zoneMode"] = HVAC_MODE_TO_REMEHA_MODE.get(hvac_mode)
-        await self.async_write_ha_state()
+        self.async_write_ha_state()
 
         if hvac_mode == HVACMode.AUTO:
-            await self.api.async_set_schedule(self.climate_zone_id)
+            await self.api.async_set_schedule(self.climate_zone_id, 1)
         elif hvac_mode == HVACMode.HEAT:
             await self.api.async_set_manual(
                 self.climate_zone_id, self._data["setPoint"]
