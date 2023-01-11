@@ -1,5 +1,10 @@
 """API for Remeha Home bound to Home Assistant OAuth."""
+import base64
+import hashlib
+import json
 import logging
+import secrets
+import urllib
 
 import async_timeout
 from aiohttp import ClientSession
@@ -92,6 +97,10 @@ class RemehaHomeAPI:
         response.raise_for_status()
 
 
+class RemehaHomeAuthFailed(Exception):
+    """Error to indicate that authentication failed."""
+
+
 class RemehaHomeOAuth2Implementation(AbstractOAuth2Implementation):
     """Custom OAuth2 implementation for the Remeha Home integration."""
 
@@ -110,17 +119,109 @@ class RemehaHomeOAuth2Implementation(AbstractOAuth2Implementation):
 
     async def async_resolve_external_data(self, external_data) -> dict:
         """Resolve external data to tokens."""
-        grant_params = {
-            "grant_type": "refresh_token",
-            "refresh_token": external_data["token"],
-        }
-        token = await self._async_request_new_token(grant_params)
+        email = external_data["email"]
+        password = external_data["password"]
 
-        if not token:
-            _LOGGER.error("Could not get token")
-            raise Exception("Could not get token")
+        # Generate a random state and code challenge
+        random_state = secrets.token_urlsafe()
+        code_challenge = secrets.token_urlsafe(64)
+        code_challenge_sha256 = (
+            base64.urlsafe_b64encode(
+                hashlib.sha256(code_challenge.encode("ascii")).digest()
+            )
+            .decode("ascii")
+            .rstrip("=")
+        )
 
-        return token
+        with async_timeout.timeout(60):
+            # Request the login page starting a new login transaction
+            response = await self._session.get(
+                "https://remehalogin.bdrthermea.net/bdrb2cprod.onmicrosoft.com/oauth2/v2.0/authorize",
+                params={
+                    "response_type": "code",
+                    "client_id": "6ce007c6-0628-419e-88f4-bee2e6418eec",
+                    "redirect_uri": "com.b2c.remehaapp://login-callback",
+                    "scope": "openid https://bdrb2cprod.onmicrosoft.com/iotdevice/user_impersonation offline_access",
+                    "state": random_state,
+                    "code_challenge": code_challenge_sha256,
+                    "code_challenge_method": "S256",
+                    "p": "B2C_1A_RPSignUpSignInNewRoomV3.1",
+                    "brand": "remeha",
+                    "lang": "en",
+                    "nonce": "defaultNonce",
+                    "prompt": "login",
+                    "signUp": "False",
+                },
+            )
+            response.raise_for_status()
+
+            # Find the request id from the headers and package it up in base64 encoded json
+            request_id = response.headers["x-request-id"]
+            state_properties_json = f'{{"TID":"{request_id}"}}'.encode("ascii")
+            state_properties = (
+                base64.urlsafe_b64encode(state_properties_json)
+                .decode("ascii")
+                .rstrip("=")
+            )
+
+            # Find the CSRF token in the "x-ms-cpim-csrf" header
+            csrf_token = next(
+                cookie.value
+                for cookie in self._session.cookie_jar
+                if (
+                    cookie.key == "x-ms-cpim-csrf"
+                    and cookie["domain"] == "remehalogin.bdrthermea.net"
+                )
+            )
+
+            # Post the user credentials to authenticate
+            response = await self._session.post(
+                "https://remehalogin.bdrthermea.net/bdrb2cprod.onmicrosoft.com/B2C_1A_RPSignUpSignInNewRoomv3.1/SelfAsserted",
+                params={
+                    "tx": "StateProperties=" + state_properties,
+                    "p": "B2C_1A_RPSignUpSignInNewRoomv3.1",
+                },
+                headers={
+                    "x-csrf-token": csrf_token,
+                },
+                data={
+                    "request_type": "RESPONSE",
+                    "signInName": email,
+                    "password": password,
+                },
+            )
+            response.raise_for_status()
+            response_json = json.loads(await response.text())
+            if response_json["status"] != "200":
+                raise RemehaHomeAuthFailed
+
+            # Request the authentication complete callback
+            response = await self._session.get(
+                "https://remehalogin.bdrthermea.net/bdrb2cprod.onmicrosoft.com/B2C_1A_RPSignUpSignInNewRoomv3.1/api/CombinedSigninAndSignup/confirmed",
+                params={
+                    "rememberMe": "false",
+                    "csrf_token": csrf_token,
+                    "tx": "StateProperties=" + state_properties,
+                    "p": "B2C_1A_RPSignUpSignInNewRoomv3.1",
+                },
+                allow_redirects=False,
+            )
+            response.raise_for_status()
+
+            # Parse the callback url for the authorization code
+            parsed_callback_url = urllib.parse.urlparse(response.headers["location"])
+            query_string_dict = urllib.parse.parse_qs(parsed_callback_url.query)
+            authorization_code = query_string_dict["code"]
+
+            # Request a new token with the authorization code
+            grant_params = {
+                "grant_type": "authorization_code",
+                "code": authorization_code,
+                "redirect_uri": "com.b2c.remehaapp://login-callback",
+                "code_verifier": code_challenge,
+                "client_id": "6ce007c6-0628-419e-88f4-bee2e6418eec",
+            }
+            return await self._async_request_new_token(grant_params)
 
     async def _async_refresh_token(self, token: dict) -> dict:
         """Refresh a token."""
@@ -128,12 +229,7 @@ class RemehaHomeOAuth2Implementation(AbstractOAuth2Implementation):
             "grant_type": "refresh_token",
             "refresh_token": token["refresh_token"],
         }
-        new_token = await self._async_request_new_token(grant_params)
-
-        if not new_token:
-            raise Exception("Could not get new token")
-
-        return new_token
+        return await self._async_request_new_token(grant_params)
 
     async def async_generate_authorize_url(self, flow_id: str) -> str:
         """Generate a url for the user to authorize."""

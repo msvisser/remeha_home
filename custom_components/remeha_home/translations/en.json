@@ -1,9 +1,16 @@
 {
     "config": {
+        "abort": {
+            "failed_to_authenticate": "Failed to authenticate"
+        },
+        "error": {
+            "failed_to_authenticate": "Invalid email address and/or password"
+        },
         "step": {
             "auth": {
                 "data": {
-                    "token": "Refresh Token"
+                    "email": "Email address",
+                    "password": "Password"
                 }
             }
         }

@@ -5,12 +5,12 @@ import logging
 import voluptuous as vol
 
 from homeassistant import config_entries
-from homeassistant.const import CONF_TOKEN
+from homeassistant.const import CONF_EMAIL, CONF_PASSWORD
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.config_entry_oauth2_flow import AbstractOAuth2FlowHandler
 
 from .const import DOMAIN
-from .api import RemehaHomeOAuth2Implementation
+from .api import RemehaHomeAuthFailed, RemehaHomeOAuth2Implementation
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -22,7 +22,6 @@ class RemehaHomeLoginFlowHandler(AbstractOAuth2FlowHandler, domain=DOMAIN):
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
     def __init__(self):
-        self._token = ""
         super().__init__()
         self.flow_impl: RemehaHomeOAuth2Implementation = None  # type: ignore
 
@@ -61,17 +60,23 @@ class RemehaHomeLoginFlowHandler(AbstractOAuth2FlowHandler, domain=DOMAIN):
         """Create an entry for auth."""
         errors = {}
 
-        if user_input and CONF_TOKEN in user_input:
-            self._token = user_input[CONF_TOKEN]
-            self.external_data = {"token": self._token}
-            return await self.async_step_creation()
+        if user_input and CONF_EMAIL in user_input and CONF_PASSWORD in user_input:
+            self.external_data = {
+                "email": user_input[CONF_EMAIL],
+                "password": user_input[CONF_PASSWORD],
+            }
+            try:
+                return await self.async_step_creation()
+            except RemehaHomeAuthFailed:
+                errors["base"] = "failed_to_authenticate"
 
         if user_input is None or errors:
             return self.async_show_form(
                 step_id="auth",
                 data_schema=vol.Schema(
                     {
-                        vol.Required(CONF_TOKEN, default=""): str,
+                        vol.Required(CONF_EMAIL, default=""): str,
+                        vol.Required(CONF_PASSWORD, default=""): str,
                     }
                 ),
                 last_step=False,
