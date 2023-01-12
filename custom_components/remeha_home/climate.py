@@ -51,8 +51,6 @@ async def async_setup_entry(
     api = hass.data[DOMAIN][entry.entry_id]["api"]
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
 
-    await coordinator.async_config_entry_first_refresh()
-
     entities = []
     for appliance in coordinator.data["appliances"]:
         for climate_zone in appliance["climateZones"]:
