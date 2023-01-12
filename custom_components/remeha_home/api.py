@@ -228,6 +228,7 @@ class RemehaHomeOAuth2Implementation(AbstractOAuth2Implementation):
         grant_params = {
             "grant_type": "refresh_token",
             "refresh_token": token["refresh_token"],
+            "client_id": "6ce007c6-0628-419e-88f4-bee2e6418eec",
         }
         return await self._async_request_new_token(grant_params)
 
