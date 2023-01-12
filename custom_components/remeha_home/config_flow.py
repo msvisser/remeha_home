@@ -93,4 +93,4 @@ class RemehaHomeLoginFlowHandler(AbstractOAuth2FlowHandler, domain=DOMAIN):
             await self.hass.config_entries.async_reload(existing_entry.entry_id)
             return self.async_abort(reason="reauth_successful")
 
-        return self.async_create_entry(title="Remeha Home", data=data)
+        return self.async_create_entry(title=self.external_data["email"], data=data)
