@@ -13,6 +13,7 @@ This integration lets you control your Remeha Home thermostats from Home Assista
 ### Install with HACS (recommended)
 
 Do you have [HACS](https://hacs.xyz/) installed?
+1. Add a custom repository to HACS: `msvisser/remeha_home` of type `Integration`
 1. Search integrations for **Remeha Home**
 1. Click `Install`
 1. Restart Home Assistant
