@@ -41,7 +41,7 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
         try:
             # Note: asyncio.TimeoutError and aiohttp.ClientError are already
             # handled by the data update coordinator.
-            async with async_timeout.timeout(10):
+            async with async_timeout.timeout(30):
                 data = await self.api.async_get_dashboard()
         except ClientResponseError as err:
             # Raising ConfigEntryAuthFailed will cancel future updates
