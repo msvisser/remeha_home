@@ -88,11 +88,7 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
     @property
     def device_info(self) -> DeviceInfo:
         """Return device info for this device."""
-        return DeviceInfo(
-            identifiers={(DOMAIN, self.unique_id)},
-            name=self.name,
-            manufacturer="Remeha",
-        )
+        return self.coordinator.get_climate_zone_device_info(self.climate_zone_id)
 
     @property
     def current_temperature(self) -> float | None:
