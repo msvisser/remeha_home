@@ -27,6 +27,8 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
             update_interval=timedelta(seconds=60),
         )
         self.api = api
+        self.appliances = {}
+        self.appliance_device_info = {}
         self.climate_zones = {}
         self.climate_zone_device_info = {}
 
@@ -50,6 +52,15 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
             raise UpdateFailed from err
 
         for appliance in data["appliances"]:
+            appliance_id = appliance["applianceId"]
+            self.appliances[appliance_id] = appliance
+            self.appliance_device_info[appliance_id] = DeviceInfo(
+                identifiers={(DOMAIN, appliance_id)},
+                name=appliance["houseName"],
+                manufacturer="Remeha",
+                model=appliance["applianceType"],
+            )
+
             for climate_zone in appliance["climateZones"]:
                 climate_zone_id = climate_zone["climateZoneId"]
                 self.climate_zones[climate_zone_id] = climate_zone
@@ -58,9 +69,18 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
                     name=climate_zone["name"],
                     manufacturer="Remeha",
                     model="Climate Zone",
+                    via_device=(DOMAIN, appliance_id),
                 )
 
         return data
+
+    def get_appliance(self, appliance_id: str):
+        """Return appliance with the specified appliance id."""
+        return self.appliances.get(appliance_id)
+
+    def get_appliance_device_info(self, appliance_id: str):
+        """Return device info for the appliance with the specified id."""
+        return self.appliance_device_info.get(appliance_id)
 
     def get_climate_zone(self, climate_zone_id: str):
         """Return climate zone with the specified climate zone id."""
