@@ -1,0 +1,18 @@
+{
+    "config": {
+        "abort": {
+            "failed_to_authenticate": "Authentificeren mislukt"
+        },
+        "error": {
+            "failed_to_authenticate": "Verkeerd email-adres en/of wachtwoord"
+        },
+        "step": {
+            "auth": {
+                "data": {
+                    "email": "Email adres",
+                    "password": "Wachtwoord"
+                }
+            }
+        }
+    }
+}
