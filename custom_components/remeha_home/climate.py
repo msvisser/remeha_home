@@ -66,6 +66,7 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
     _attr_supported_features = ClimateEntityFeature.TARGET_TEMPERATURE
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_precision = PRECISION_HALVES
+    _attr_has_entity_name = True
 
     def __init__(
         self,
@@ -111,11 +112,6 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
     def max_temp(self) -> float:
         """Return the maximum temperature."""
         return self._data["setPointMax"]
-
-    @property
-    def name(self) -> str:
-        """Return the name of the climate device."""
-        return self._data["name"]
 
     @property
     def hvac_mode(self) -> HVACMode | str | None:

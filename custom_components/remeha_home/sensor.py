@@ -55,6 +55,8 @@ async def async_setup_entry(
 class RemehaHomeApplianceSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Sensor."""
 
+    _attr_has_entity_name = True
+
     def __init__(
         self,
         coordinator: RemehaHomeUpdateCoordinator,
@@ -89,11 +91,6 @@ class RemehaHomeApplianceSensor(CoordinatorEntity, SensorEntity):
         return value
 
     @property
-    def name(self) -> str:
-        """Return the name of this sensor."""
-        return f"{self.appliance_name} {self.entity_description.name}"
-
-    @property
     def device_info(self) -> DeviceInfo:
         """Return device info for this device."""
         return self.coordinator.get_appliance_device_info(self.appliance_id)
@@ -101,6 +98,8 @@ class RemehaHomeApplianceSensor(CoordinatorEntity, SensorEntity):
 
 class RemehaHomeClimateZoneSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Sensor."""
+
+    _attr_has_entity_name = True
 
     def __init__(
         self,
@@ -134,11 +133,6 @@ class RemehaHomeClimateZoneSensor(CoordinatorEntity, SensorEntity):
             )
 
         return value
-
-    @property
-    def name(self) -> str:
-        """Return the name of this sensor."""
-        return f"{self.zone_name} {self.entity_description.name}"
 
     @property
     def device_info(self) -> DeviceInfo:
