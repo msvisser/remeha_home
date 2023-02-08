@@ -41,6 +41,18 @@ REMEHA_STATUS_TO_HVAC_ACTION = {
     "Idle": HVACAction.IDLE,
 }
 
+PRESET_INDEX_TO_PRESET_MODE = {
+    1: "clock_program_1",
+    2: "clock_program_2",
+    3: "clock_program_3",
+}
+
+PRESET_MODE_TO_PRESET_INDEX = {
+    "clock_program_1": 1,
+    "clock_program_2": 2,
+    "clock_program_3": 3,
+}
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -63,10 +75,13 @@ async def async_setup_entry(
 class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
     """Climate entity representing a Remeha Home climate zone."""
 
-    _attr_supported_features = ClimateEntityFeature.TARGET_TEMPERATURE
+    _attr_supported_features = (
+        ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.PRESET_MODE
+    )
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_precision = PRECISION_HALVES
     _attr_has_entity_name = True
+    _attr_translation_key = "remeha_home"
 
     def __init__(
         self,
@@ -133,6 +148,18 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
         action = self._data["activeComfortDemand"]
         return REMEHA_STATUS_TO_HVAC_ACTION.get(action)
 
+    @property
+    def preset_mode(self) -> str | None:
+        """Return the preset mode."""
+        return PRESET_INDEX_TO_PRESET_MODE[
+            self._data["activeHeatingClimateTimeProgramNumber"]
+        ]
+
+    @property
+    def preset_modes(self) -> list[str]:
+        """Return the list of available presets."""
+        return list(PRESET_INDEX_TO_PRESET_MODE.values())
+
     async def async_set_temperature(self, **kwargs: Any) -> None:
         """Set new target temperature."""
         if (temperature := kwargs.get(ATTR_TEMPERATURE)) is not None:
@@ -157,7 +184,10 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
         self.async_write_ha_state()
 
         if hvac_mode == HVACMode.AUTO:
-            await self.api.async_set_schedule(self.climate_zone_id, 1)
+            await self.api.async_set_schedule(
+                self.climate_zone_id,
+                self._data["activeHeatingClimateTimeProgramNumber"],
+            )
         elif hvac_mode == HVACMode.HEAT:
             await self.api.async_set_manual(
                 self.climate_zone_id, self._data["setPoint"]
@@ -167,4 +197,21 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
         else:
             raise NotImplementedError()
 
+        await self.coordinator.async_request_refresh()
+
+    async def async_set_preset_mode(self, preset_mode: str) -> None:
+        """Set new preset mode."""
+        _LOGGER.debug("Setting preset mode to %s", preset_mode)
+
+        if preset_mode not in PRESET_MODE_TO_PRESET_INDEX:
+            _LOGGER.error("Trying to set unknown preset mode %s", preset_mode)
+            return
+
+        target_preset = PRESET_MODE_TO_PRESET_INDEX[preset_mode]
+
+        self._data["zoneMode"] = HVAC_MODE_TO_REMEHA_MODE.get(HVACMode.AUTO)
+        self._data["activeHeatingClimateTimeProgramNumber"] = target_preset
+        self.async_write_ha_state()
+
+        await self.api.async_set_schedule(self.climate_zone_id, target_preset)
         await self.coordinator.async_request_refresh()
