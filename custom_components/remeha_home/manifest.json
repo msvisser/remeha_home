@@ -2,7 +2,7 @@
   "domain": "remeha_home",
   "name": "Remeha Home",
   "integration_type": "device",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "config_flow": true,
   "documentation": "https://github.com/msvisser/remeha_home",
   "issue_tracker": "https://github.com/msvisser/remeha_home/issues",
