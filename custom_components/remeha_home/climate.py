@@ -213,5 +213,7 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
         self._data["activeHeatingClimateTimeProgramNumber"] = target_preset
         self.async_write_ha_state()
 
-        await self.api.async_set_schedule(self.climate_zone_id, target_preset)
+        await self.api.async_activate_heating_time_program(
+            self.climate_zone_id, target_preset
+        )
         await self.coordinator.async_request_refresh()

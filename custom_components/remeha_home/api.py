@@ -67,7 +67,10 @@ class RemehaHomeAPI:
         response.raise_for_status()
 
     async def async_set_schedule(self, climate_zone_id: str, heating_program_id: int):
-        """Set a climate zone to schedule mode with a specific heating program."""
+        """
+        Set a climate zone to schedule mode.
+        The supplied heating program id should match the current heating program id.
+        """
         response = await self._async_api_request(
             "POST",
             f"/climate-zones/{climate_zone_id}/modes/schedule",
@@ -93,6 +96,16 @@ class RemehaHomeAPI:
         response = await self._async_api_request(
             "POST",
             f"/climate-zones/{climate_zone_id}/modes/anti-frost",
+        )
+        response.raise_for_status()
+
+    async def async_activate_heating_time_program(
+        self, climate_zone_id: str, time_program_id: int
+    ):
+        """Set a climate zone to schedule mode with a specific time program."""
+        response = await self._async_api_request(
+            "POST",
+            f"/climate-zones/{climate_zone_id}/time-programs/heating/{time_program_id}/activate",
         )
         response.raise_for_status()
 
