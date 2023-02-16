@@ -15,7 +15,14 @@ APPLIANCE_SENSOR_TYPES = [
         native_unit_of_measurement=UnitOfPressure.BAR,
         device_class=SensorDeviceClass.PRESSURE,
         state_class=SensorStateClass.MEASUREMENT,
-    )
+    ),
+    SensorEntityDescription(
+        key="outdoorTemperature",
+        name="Outdoor Temperature",
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
 ]
 
 CLIMATE_ZONE_SENSOR_TYPES = [
