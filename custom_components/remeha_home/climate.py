@@ -42,15 +42,15 @@ REMEHA_STATUS_TO_HVAC_ACTION = {
 }
 
 PRESET_INDEX_TO_PRESET_MODE = {
-    1: "schedule_1",
-    2: "schedule_2",
-    3: "schedule_3",
+    1: "clock_program_1",
+    2: "clock_program_2",
+    3: "clock_program_3",
 }
 
 PRESET_MODE_TO_PRESET_INDEX = {
-    "schedule_1": 1,
-    "schedule_2": 2,
-    "schedule_3": 3,
+    "clock_program_1": 1,
+    "clock_program_2": 2,
+    "clock_program_3": 3,
 }
 
 async def async_setup_entry(
@@ -151,9 +151,9 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
     def preset_mode(self) -> str | None:
         """Return the preset mode."""
         if self.hvac_mode == HVACMode.OFF:
-            return "Frost protection"
+            return "anti_frost"
         if self.hvac_mode == HVACMode.HEAT:
-            return "Manual"
+            return "manual"
         return PRESET_INDEX_TO_PRESET_MODE[
             self._data["activeHeatingClimateTimeProgramNumber"]
         ]
