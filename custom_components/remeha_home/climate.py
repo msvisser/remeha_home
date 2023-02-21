@@ -53,6 +53,7 @@ PRESET_MODE_TO_PRESET_INDEX = {
     "clock_program_3": 3,
 }
 
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
