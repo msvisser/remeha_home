@@ -21,9 +21,11 @@
                 "state_attributes": {
                     "preset_mode": {
                         "state": {
-                            "clock_program_1": "Clock program 1",
-                            "clock_program_2": "Clock program 2",
-                            "clock_program_3": "Clock program 3"
+                            "clock_program_1": "Schedule 1",
+                            "clock_program_2": "Schedule 2",
+                            "clock_program_3": "Schedule 3",
+                            "anti_frost": "Frost protection",
+                            "manual": "Manual"
                         }
                     }
                 }
