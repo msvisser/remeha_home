@@ -109,6 +109,15 @@ class RemehaHomeAPI:
         )
         response.raise_for_status()
 
+    async def async_set_fireplace_mode(self, climate_zone_id: str, enabled: bool):
+        """Set fireplace mode for a climate zone."""
+        response = await self._async_api_request(
+            "POST",
+            f"/climate-zones/{climate_zone_id}/modes/fireplacemode",
+            json={"fireplaceModeActive": enabled},
+        )
+        response.raise_for_status()
+
 
 class RemehaHomeAuthFailed(Exception):
     """Error to indicate that authentication failed."""
