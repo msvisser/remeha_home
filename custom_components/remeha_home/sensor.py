@@ -30,22 +30,17 @@ async def async_setup_entry(
     entities = []
     for appliance in coordinator.data["appliances"]:
         appliance_id = appliance["applianceId"]
-        appliance_name = appliance["houseName"]
         for entity_description in APPLIANCE_SENSOR_TYPES:
             entities.append(
-                RemehaHomeApplianceSensor(
-                    coordinator, appliance_id, appliance_name, entity_description
-                )
+                RemehaHomeApplianceSensor(coordinator, appliance_id, entity_description)
             )
 
         for climate_zone in appliance["climateZones"]:
             climate_zone_id = climate_zone["climateZoneId"]
-            zone_name = climate_zone["name"]
-
             for entity_description in CLIMATE_ZONE_SENSOR_TYPES:
                 entities.append(
                     RemehaHomeClimateZoneSensor(
-                        coordinator, climate_zone_id, zone_name, entity_description
+                        coordinator, climate_zone_id, entity_description
                     )
                 )
 
@@ -61,12 +56,10 @@ class RemehaHomeApplianceSensor(CoordinatorEntity, SensorEntity):
         self,
         coordinator: RemehaHomeUpdateCoordinator,
         appliance_id: str,
-        appliance_name: str,
         entity_description: SensorEntityDescription,
     ) -> None:
         super().__init__(coordinator)
         self.appliance_id = appliance_id
-        self.appliance_name = appliance_name
         self.entity_description = entity_description
 
         self._attr_unique_id = "_".join(
@@ -105,12 +98,10 @@ class RemehaHomeClimateZoneSensor(CoordinatorEntity, SensorEntity):
         self,
         coordinator: RemehaHomeUpdateCoordinator,
         climate_zone: str,
-        zone_name: str,
         entity_description: SensorEntityDescription,
     ) -> None:
         super().__init__(coordinator)
         self.climate_zone_id = climate_zone
-        self.zone_name = zone_name
         self.entity_description = entity_description
 
         self._attr_unique_id = "_".join(
