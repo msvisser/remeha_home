@@ -13,10 +13,11 @@ If you are unable to use the Remeha Home app for your thermostat, this integrati
         - Off mode: the thermostat is disabled.
     - Three presets for the three clock programs available in the Remeha Home app.
     When a preset is selected, the integration will automatically switch the climate zone to auto mode to make sure the preset is applied.
-- Each climate zone exposes the following sensors:
+- Each climate zone also exposes the following sensors/switches:
     - The next schedule setpoint
     - The time at which the next schedule setpoint gets activated
     - The current schedule setpoint
+    - Switch to control fireplace mode
 - Each appliance (CV-ketel) exposes the following sensors:
     - The water pressure
 
