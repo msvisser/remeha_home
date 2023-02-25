@@ -1,13 +1,13 @@
 {
   "domain": "remeha_home",
   "name": "Remeha Home",
-  "integration_type": "device",
-  "version": "0.1.7",
-  "config_flow": true,
-  "documentation": "https://github.com/msvisser/remeha_home",
-  "issue_tracker": "https://github.com/msvisser/remeha_home/issues",
   "codeowners": [
     "@msvisser"
   ],
-  "iot_class": "cloud_polling"
+  "config_flow": true,
+  "documentation": "https://github.com/msvisser/remeha_home",
+  "integration_type": "device",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/msvisser/remeha_home/issues",
+  "version": "0.1.7"
 }
