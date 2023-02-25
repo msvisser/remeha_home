@@ -12,6 +12,7 @@ If you are unable to use the Remeha Home app for your thermostat, this integrati
         - Heat mode: the thermostat will be set to manual mode and continuously hold the set temperature.
         - Off mode: the thermostat is disabled.
     - Three presets for the three clock programs available in the Remeha Home app.
+    When a preset is selected, the integration will automatically switch the climate zone to auto mode to make sure the preset is applied.
 - Each climate zone exposes the following sensors:
     - The next schedule setpoint
     - The time at which the next schedule setpoint gets activated

@@ -212,12 +212,18 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
             return
 
         target_preset = PRESET_MODE_TO_PRESET_INDEX[preset_mode]
+        previous_hvac_mode = self.hvac_mode
 
         self._data["zoneMode"] = HVAC_MODE_TO_REMEHA_MODE.get(HVACMode.AUTO)
         self._data["activeHeatingClimateTimeProgramNumber"] = target_preset
         self.async_write_ha_state()
 
+        # Switch the selected heating time program
         await self.api.async_activate_heating_time_program(
             self.climate_zone_id, target_preset
         )
+        # Automatically make sure the mode is set to schedule
+        if previous_hvac_mode != HVACMode.AUTO:
+            await self.api.async_set_schedule(self.climate_zone_id, target_preset)
+
         await self.coordinator.async_request_refresh()
