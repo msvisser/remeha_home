@@ -74,7 +74,10 @@ class RemehaHomeApplianceSensor(CoordinatorEntity, SensorEntity):
     @property
     def native_value(self):
         """Return the measurement value for this sensor."""
-        value = self._data[self.entity_description.key]
+        data = self._data
+        for part in self.entity_description.key.split("."):
+            data = data[part]
+        value = data
 
         if self.entity_description.device_class == SensorDeviceClass.TIMESTAMP:
             return dt_util.parse_datetime(value).replace(

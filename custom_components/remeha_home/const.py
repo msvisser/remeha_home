@@ -23,6 +23,14 @@ APPLIANCE_SENSOR_TYPES = [
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
     ),
+    SensorEntityDescription(
+        key="outdoorTemperatureInformation.cloudOutdoorTemperature",
+        name="Cloud Outdoor Temperature",
+        entity_registry_enabled_default=False,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
 ]
 
 CLIMATE_ZONE_SENSOR_TYPES = [
