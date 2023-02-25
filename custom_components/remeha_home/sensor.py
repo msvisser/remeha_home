@@ -15,7 +15,12 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 import homeassistant.util.dt as dt_util
 
-from .const import APPLIANCE_SENSOR_TYPES, CLIMATE_ZONE_SENSOR_TYPES, DOMAIN
+from .const import (
+    APPLIANCE_SENSOR_TYPES,
+    CLIMATE_ZONE_SENSOR_TYPES,
+    DOMAIN,
+    HOT_WATER_ZONE_SENSOR_TYPES,
+)
 from .coordinator import RemehaHomeUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -41,6 +46,15 @@ async def async_setup_entry(
                 entities.append(
                     RemehaHomeClimateZoneSensor(
                         coordinator, climate_zone_id, entity_description
+                    )
+                )
+
+        for hot_water_zone in appliance["hotWaterZones"]:
+            hot_water_zone_id = hot_water_zone["hotWaterZoneId"]
+            for entity_description in HOT_WATER_ZONE_SENSOR_TYPES:
+                entities.append(
+                    RemehaHomeHotWaterZoneSensor(
+                        coordinator, hot_water_zone_id, entity_description
                     )
                 )
 
@@ -132,3 +146,45 @@ class RemehaHomeClimateZoneSensor(CoordinatorEntity, SensorEntity):
     def device_info(self) -> DeviceInfo:
         """Return device info for this device."""
         return self.coordinator.get_climate_zone_device_info(self.climate_zone_id)
+
+
+class RemehaHomeHotWaterZoneSensor(CoordinatorEntity, SensorEntity):
+    """Representation of a Sensor."""
+
+    _attr_has_entity_name = True
+
+    def __init__(
+        self,
+        coordinator: RemehaHomeUpdateCoordinator,
+        hot_water_zone: str,
+        entity_description: SensorEntityDescription,
+    ) -> None:
+        super().__init__(coordinator)
+        self.hot_water_zone_id = hot_water_zone
+        self.entity_description = entity_description
+
+        self._attr_unique_id = "_".join(
+            [DOMAIN, self.hot_water_zone_id, entity_description.key]
+        )
+
+    @property
+    def _data(self):
+        """Return the climate zone data for this sensor."""
+        return self.coordinator.get_hot_water_zone(self.hot_water_zone_id)
+
+    @property
+    def native_value(self):
+        """Return the measurement value for this sensor."""
+        value = self._data[self.entity_description.key]
+
+        if self.entity_description.device_class == SensorDeviceClass.TIMESTAMP:
+            return dt_util.parse_datetime(value).replace(
+                tzinfo=dt_util.DEFAULT_TIME_ZONE
+            )
+
+        return value
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device info for this device."""
+        return self.coordinator.get_hot_water_zone_device_info(self.hot_water_zone_id)

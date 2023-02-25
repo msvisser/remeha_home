@@ -52,3 +52,13 @@ CLIMATE_ZONE_SENSOR_TYPES = [
         device_class=SensorDeviceClass.TEMPERATURE,
     ),
 ]
+
+HOT_WATER_ZONE_SENSOR_TYPES = [
+    SensorEntityDescription(
+        key="dhwTemperature",
+        name="Water Temperature",
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+]
