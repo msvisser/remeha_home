@@ -18,6 +18,8 @@ If you are unable to use the Remeha Home app for your thermostat, this integrati
     - The time at which the next schedule setpoint gets activated
     - The current schedule setpoint
     - Switch to control fireplace mode
+- Each hot water zone exposes the following sensors:
+    - The water temperature
 - Each appliance (CV-ketel) exposes the following sensors:
     - The water pressure
 
