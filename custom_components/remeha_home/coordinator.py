@@ -27,12 +27,8 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
             update_interval=timedelta(seconds=60),
         )
         self.api = api
-        self.appliances = {}
-        self.appliance_device_info = {}
-        self.climate_zones = {}
-        self.climate_zone_device_info = {}
-        self.hot_water_zones = {}
-        self.hot_water_zone_device_info = {}
+        self.items = {}
+        self.device_info = {}
 
     async def _async_update_data(self):
         """Fetch data from API endpoint.
@@ -55,8 +51,8 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
 
         for appliance in data["appliances"]:
             appliance_id = appliance["applianceId"]
-            self.appliances[appliance_id] = appliance
-            self.appliance_device_info[appliance_id] = DeviceInfo(
+            self.items[appliance_id] = appliance
+            self.device_info[appliance_id] = DeviceInfo(
                 identifiers={(DOMAIN, appliance_id)},
                 name=appliance["houseName"],
                 manufacturer="Remeha",
@@ -65,8 +61,8 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
 
             for climate_zone in appliance["climateZones"]:
                 climate_zone_id = climate_zone["climateZoneId"]
-                self.climate_zones[climate_zone_id] = climate_zone
-                self.climate_zone_device_info[climate_zone_id] = DeviceInfo(
+                self.items[climate_zone_id] = climate_zone
+                self.device_info[climate_zone_id] = DeviceInfo(
                     identifiers={(DOMAIN, climate_zone_id)},
                     name=climate_zone["name"],
                     manufacturer="Remeha",
@@ -76,8 +72,8 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
 
             for hot_water_zone in appliance["hotWaterZones"]:
                 hot_water_zone_id = hot_water_zone["hotWaterZoneId"]
-                self.hot_water_zones[hot_water_zone_id] = hot_water_zone
-                self.hot_water_zone_device_info[hot_water_zone_id] = DeviceInfo(
+                self.items[hot_water_zone_id] = hot_water_zone
+                self.device_info[hot_water_zone_id] = DeviceInfo(
                     identifiers={(DOMAIN, hot_water_zone_id)},
                     name=hot_water_zone["name"],
                     manufacturer="Remeha",
@@ -87,26 +83,10 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
 
         return data
 
-    def get_appliance(self, appliance_id: str):
-        """Return appliance with the specified appliance id."""
-        return self.appliances.get(appliance_id)
+    def get_by_id(self, item_id: str):
+        """Return item with the specified item id."""
+        return self.items.get(item_id)
 
-    def get_appliance_device_info(self, appliance_id: str):
-        """Return device info for the appliance with the specified id."""
-        return self.appliance_device_info.get(appliance_id)
-
-    def get_climate_zone(self, climate_zone_id: str):
-        """Return climate zone with the specified climate zone id."""
-        return self.climate_zones.get(climate_zone_id)
-
-    def get_climate_zone_device_info(self, climate_zone_id: str) -> DeviceInfo:
-        """Return device info for the climate zone with the specified id."""
-        return self.climate_zone_device_info.get(climate_zone_id)
-
-    def get_hot_water_zone(self, hot_water_zone_id: str):
-        """Return hot water zone with the specified hot water zone id."""
-        return self.hot_water_zones.get(hot_water_zone_id)
-
-    def get_hot_water_zone_device_info(self, hot_water_zone_id: str) -> DeviceInfo:
-        """Return device info for the hot water zone with the specified id."""
-        return self.hot_water_zone_device_info.get(hot_water_zone_id)
+    def get_device_info(self, item_id: str):
+        """Return device info for the item with the specified id."""
+        return self.device_info.get(item_id)

@@ -64,7 +64,7 @@ class RemehaHomeSwitch(CoordinatorEntity, SwitchEntity):
     @property
     def _data(self):
         """Return the climate zone data for this switch."""
-        return self.coordinator.get_climate_zone(self.climate_zone_id)
+        return self.coordinator.get_by_id(self.climate_zone_id)
 
     @property
     def is_on(self) -> bool:
@@ -74,7 +74,7 @@ class RemehaHomeSwitch(CoordinatorEntity, SwitchEntity):
     @property
     def device_info(self) -> DeviceInfo:
         """Return device info for this device."""
-        return self.coordinator.get_climate_zone_device_info(self.climate_zone_id)
+        return self.coordinator.get_device_info(self.climate_zone_id)
 
 
 class RemehaHomeFireplaceModeSwitch(RemehaHomeSwitch):

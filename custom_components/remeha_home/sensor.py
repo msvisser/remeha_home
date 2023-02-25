@@ -37,31 +37,27 @@ async def async_setup_entry(
         appliance_id = appliance["applianceId"]
         for entity_description in APPLIANCE_SENSOR_TYPES:
             entities.append(
-                RemehaHomeApplianceSensor(coordinator, appliance_id, entity_description)
+                RemehaHomeSensor(coordinator, appliance_id, entity_description)
             )
 
         for climate_zone in appliance["climateZones"]:
             climate_zone_id = climate_zone["climateZoneId"]
             for entity_description in CLIMATE_ZONE_SENSOR_TYPES:
                 entities.append(
-                    RemehaHomeClimateZoneSensor(
-                        coordinator, climate_zone_id, entity_description
-                    )
+                    RemehaHomeSensor(coordinator, climate_zone_id, entity_description)
                 )
 
         for hot_water_zone in appliance["hotWaterZones"]:
             hot_water_zone_id = hot_water_zone["hotWaterZoneId"]
             for entity_description in HOT_WATER_ZONE_SENSOR_TYPES:
                 entities.append(
-                    RemehaHomeHotWaterZoneSensor(
-                        coordinator, hot_water_zone_id, entity_description
-                    )
+                    RemehaHomeSensor(coordinator, hot_water_zone_id, entity_description)
                 )
 
     async_add_entities(entities)
 
 
-class RemehaHomeApplianceSensor(CoordinatorEntity, SensorEntity):
+class RemehaHomeSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Sensor."""
 
     _attr_has_entity_name = True
@@ -69,21 +65,18 @@ class RemehaHomeApplianceSensor(CoordinatorEntity, SensorEntity):
     def __init__(
         self,
         coordinator: RemehaHomeUpdateCoordinator,
-        appliance_id: str,
+        item_id: str,
         entity_description: SensorEntityDescription,
     ) -> None:
         super().__init__(coordinator)
-        self.appliance_id = appliance_id
         self.entity_description = entity_description
-
-        self._attr_unique_id = "_".join(
-            [DOMAIN, self.appliance_id, entity_description.key]
-        )
+        self.item_id = item_id
+        self._attr_unique_id = "_".join([DOMAIN, self.item_id, entity_description.key])
 
     @property
     def _data(self):
         """Return the appliance data for this sensor."""
-        return self.coordinator.get_appliance(self.appliance_id)
+        return self.coordinator.get_by_id(self.item_id)
 
     @property
     def native_value(self):
@@ -103,88 +96,4 @@ class RemehaHomeApplianceSensor(CoordinatorEntity, SensorEntity):
     @property
     def device_info(self) -> DeviceInfo:
         """Return device info for this device."""
-        return self.coordinator.get_appliance_device_info(self.appliance_id)
-
-
-class RemehaHomeClimateZoneSensor(CoordinatorEntity, SensorEntity):
-    """Representation of a Sensor."""
-
-    _attr_has_entity_name = True
-
-    def __init__(
-        self,
-        coordinator: RemehaHomeUpdateCoordinator,
-        climate_zone: str,
-        entity_description: SensorEntityDescription,
-    ) -> None:
-        super().__init__(coordinator)
-        self.climate_zone_id = climate_zone
-        self.entity_description = entity_description
-
-        self._attr_unique_id = "_".join(
-            [DOMAIN, self.climate_zone_id, entity_description.key]
-        )
-
-    @property
-    def _data(self):
-        """Return the climate zone data for this sensor."""
-        return self.coordinator.get_climate_zone(self.climate_zone_id)
-
-    @property
-    def native_value(self):
-        """Return the measurement value for this sensor."""
-        value = self._data[self.entity_description.key]
-
-        if self.entity_description.device_class == SensorDeviceClass.TIMESTAMP:
-            return dt_util.parse_datetime(value).replace(
-                tzinfo=dt_util.DEFAULT_TIME_ZONE
-            )
-
-        return value
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device info for this device."""
-        return self.coordinator.get_climate_zone_device_info(self.climate_zone_id)
-
-
-class RemehaHomeHotWaterZoneSensor(CoordinatorEntity, SensorEntity):
-    """Representation of a Sensor."""
-
-    _attr_has_entity_name = True
-
-    def __init__(
-        self,
-        coordinator: RemehaHomeUpdateCoordinator,
-        hot_water_zone: str,
-        entity_description: SensorEntityDescription,
-    ) -> None:
-        super().__init__(coordinator)
-        self.hot_water_zone_id = hot_water_zone
-        self.entity_description = entity_description
-
-        self._attr_unique_id = "_".join(
-            [DOMAIN, self.hot_water_zone_id, entity_description.key]
-        )
-
-    @property
-    def _data(self):
-        """Return the climate zone data for this sensor."""
-        return self.coordinator.get_hot_water_zone(self.hot_water_zone_id)
-
-    @property
-    def native_value(self):
-        """Return the measurement value for this sensor."""
-        value = self._data[self.entity_description.key]
-
-        if self.entity_description.device_class == SensorDeviceClass.TIMESTAMP:
-            return dt_util.parse_datetime(value).replace(
-                tzinfo=dt_util.DEFAULT_TIME_ZONE
-            )
-
-        return value
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device info for this device."""
-        return self.coordinator.get_hot_water_zone_device_info(self.hot_water_zone_id)
+        return self.coordinator.get_device_info(self.item_id)

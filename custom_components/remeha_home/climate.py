@@ -99,12 +99,12 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
     @property
     def _data(self) -> dict:
         """Return the climate zone information from the coordinator."""
-        return self.coordinator.get_climate_zone(self.climate_zone_id)
+        return self.coordinator.get_by_id(self.climate_zone_id)
 
     @property
     def device_info(self) -> DeviceInfo:
         """Return device info for this device."""
-        return self.coordinator.get_climate_zone_device_info(self.climate_zone_id)
+        return self.coordinator.get_device_info(self.climate_zone_id)
 
     @property
     def current_temperature(self) -> float | None:
