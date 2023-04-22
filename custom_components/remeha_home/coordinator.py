@@ -29,6 +29,7 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
         self.api = api
         self.items = {}
         self.device_info = {}
+        self.technical_info = {}
 
     async def _async_update_data(self):
         """Fetch data from API endpoint.
@@ -52,21 +53,41 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
         for appliance in data["appliances"]:
             appliance_id = appliance["applianceId"]
             self.items[appliance_id] = appliance
+
+            # Request appliance technical information the first time it is discovered
+            if appliance_id not in self.technical_info:
+                self.technical_info[
+                    appliance_id
+                ] = await self.api.async_get_appliance_technical_information(
+                    appliance_id
+                )
+                _LOGGER.debug(
+                    "Requested technical information for appliance %s: %s",
+                    appliance_id,
+                    self.technical_info[appliance_id],
+                )
+
             self.device_info[appliance_id] = DeviceInfo(
                 identifiers={(DOMAIN, appliance_id)},
                 name=appliance["houseName"],
                 manufacturer="Remeha",
-                model=appliance["applianceType"],
+                model=self.technical_info[appliance_id]["applianceName"],
             )
 
-            for climate_zone in appliance["climateZones"]:
+            for i, climate_zone in enumerate(appliance["climateZones"]):
                 climate_zone_id = climate_zone["climateZoneId"]
+                # This assumes every climate zone has a thermostat
+                technical_info = self.technical_info[appliance_id][
+                    "internetConnectedGateways"
+                ][i]
                 self.items[climate_zone_id] = climate_zone
                 self.device_info[climate_zone_id] = DeviceInfo(
                     identifiers={(DOMAIN, climate_zone_id)},
                     name=climate_zone["name"],
                     manufacturer="Remeha",
-                    model="Climate Zone",
+                    model=technical_info["name"],
+                    hw_version=technical_info["hardwareVersion"],
+                    sw_version=technical_info["softwareVersion"],
                     via_device=(DOMAIN, appliance_id),
                 )
 

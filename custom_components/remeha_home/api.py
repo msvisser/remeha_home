@@ -118,6 +118,17 @@ class RemehaHomeAPI:
         )
         response.raise_for_status()
 
+    async def async_get_appliance_technical_information(
+        self, appliance_id: str
+    ) -> dict:
+        """Get technical information for an appliance."""
+        response = await self._async_api_request(
+            "GET",
+            f"/appliances/{appliance_id}/technicaldetails",
+        )
+        response.raise_for_status()
+        return await response.json()
+
 
 class RemehaHomeAuthFailed(Exception):
     """Error to indicate that authentication failed."""
