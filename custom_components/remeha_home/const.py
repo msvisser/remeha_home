@@ -61,4 +61,8 @@ HOT_WATER_ZONE_SENSOR_TYPES = [
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
     ),
+    SensorEntityDescription(
+        key="dhwStatus",
+        name="Status",
+    ),
 ]
