@@ -72,6 +72,18 @@ HOT_WATER_ZONE_SENSOR_TYPES = [
     ),
 ]
 
+CLIMATE_ZONE_BINARY_SENSOR_TYPES = [
+    (
+        BinarySensorEntityDescription(
+            key="activeComfortDemand",
+            name="Status",
+            entity_registry_enabled_default=False,
+            device_class=BinarySensorDeviceClass.HEAT,
+        ),
+        lambda value: value in ["ProducingHeat", "RequestingHeat"],
+    )
+]
+
 HOT_WATER_ZONE_BINARY_SENSOR_TYPES = [
     (
         BinarySensorEntityDescription(

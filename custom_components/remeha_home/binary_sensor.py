@@ -16,6 +16,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
     DOMAIN,
+    CLIMATE_ZONE_BINARY_SENSOR_TYPES,
     HOT_WATER_ZONE_BINARY_SENSOR_TYPES,
 )
 from .coordinator import RemehaHomeUpdateCoordinator
@@ -31,6 +32,21 @@ async def async_setup_entry(
 
     entities = []
     for appliance in coordinator.data["appliances"]:
+        for climate_zone in appliance["climateZones"]:
+            climate_zone_id = climate_zone["climateZoneId"]
+            for (
+                entity_description,
+                transform_func,
+            ) in CLIMATE_ZONE_BINARY_SENSOR_TYPES:
+                entities.append(
+                    RemehaHomeBinarySensor(
+                        coordinator,
+                        climate_zone_id,
+                        entity_description,
+                        transform_func,
+                    )
+                )
+
         for hot_water_zone in appliance["hotWaterZones"]:
             hot_water_zone_id = hot_water_zone["hotWaterZoneId"]
             for (
