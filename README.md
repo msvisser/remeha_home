@@ -48,3 +48,6 @@ Click the button or follow the instructions.
 1. Enter your email address and password
 1. Click "Next"
 1. Enjoy
+
+## API documentation
+For information on the Remeha Home API see [API documentation](documentation/api.md).
