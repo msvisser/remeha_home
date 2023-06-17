@@ -74,6 +74,9 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
                 model=self.technical_info[appliance_id]["applianceName"],
             )
 
+            consumption_data = await self.api.async_get_consumption_data(appliance_id)
+            appliance["consumption_data"] = consumption_data["data"][-1]
+
             for i, climate_zone in enumerate(appliance["climateZones"]):
                 climate_zone_id = climate_zone["climateZoneId"]
                 # This assumes every climate zone has a thermostat
