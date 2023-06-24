@@ -1,3 +1,4 @@
+import datetime
 from datetime import timedelta
 import logging
 
@@ -75,7 +76,14 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
             )
 
             consumption_data = await self.api.async_get_consumption_data(appliance_id)
-            appliance["consumption_data"] = consumption_data["data"][-1]
+            is_change_of_day = self._is_change_of_day(appliance.get("consumption_data"))
+            appliance["consumption_data"] = consumption_data["data"][-1] \
+                if consumption_data["data"] \
+                else {"heatingEnergyConsumed":0, "hotWaterEnergyConsumed":0}
+            if is_change_of_day:
+                # Total increase sensors must be reset to 0 every day
+                appliance["consumption_data"]["heatingEnergyConsumed"] = 0
+                appliance["consumption_data"]["hotWaterEnergyConsumed"] = 0
 
             for i, climate_zone in enumerate(appliance["climateZones"]):
                 climate_zone_id = climate_zone["climateZoneId"]
@@ -106,6 +114,16 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
                 )
 
         return data
+
+    def _is_change_of_day(self, last_consumption_timestamp):
+        if not last_consumption_timestamp:
+            return False
+        today = datetime.date.today()
+        last_consumption_date = last_consumption_timestamp["timeStamp"][:-15]
+        last_consumption_date = datetime.datetime.strptime(
+            last_consumption_date, "%y-%m-%dT%H:%M:%S"
+        )
+        return today == last_consumption_date
 
     def get_by_id(self, item_id: str):
         """Return item with the specified item id."""
