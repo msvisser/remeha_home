@@ -76,7 +76,7 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
             )
 
             consumption_data = await self.api.async_get_consumption_data(appliance_id)
-            is_change_of_day = self._is_change_of_day(appliance.get("consumption_data"))
+            is_change_of_day = self._is_change_of_day(appliance.get("consumption_data", {}).get('timeStamp'))
             appliance["consumption_data"] = consumption_data["data"][-1] \
                 if consumption_data["data"] \
                 else {"heatingEnergyConsumed":0, "hotWaterEnergyConsumed":0}
