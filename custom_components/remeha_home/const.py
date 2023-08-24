@@ -4,6 +4,10 @@ from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorStateClass,
 )
+from homeassistant.components.binary_sensor import (
+    BinarySensorEntityDescription,
+    BinarySensorDeviceClass,
+)
 from homeassistant.const import UnitOfTemperature, UnitOfPressure
 
 DOMAIN = "remeha_home"
@@ -64,5 +68,30 @@ HOT_WATER_ZONE_SENSOR_TYPES = [
     SensorEntityDescription(
         key="dhwStatus",
         name="Status",
+        entity_registry_enabled_default=False,
+    ),
+]
+
+CLIMATE_ZONE_BINARY_SENSOR_TYPES = [
+    (
+        BinarySensorEntityDescription(
+            key="activeComfortDemand",
+            name="Status",
+            entity_registry_enabled_default=False,
+            device_class=BinarySensorDeviceClass.HEAT,
+        ),
+        lambda value: value in ["ProducingHeat", "RequestingHeat"],
+    )
+]
+
+HOT_WATER_ZONE_BINARY_SENSOR_TYPES = [
+    (
+        BinarySensorEntityDescription(
+            key="dhwStatus",
+            name="Status",
+            entity_registry_enabled_default=False,
+            device_class=BinarySensorDeviceClass.HEAT,
+        ),
+        lambda value: value == "ProducingHeat",
     ),
 ]

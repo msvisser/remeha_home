@@ -13,6 +13,7 @@ from homeassistant.helpers.config_entry_oauth2_flow import (
     AbstractOAuth2Implementation,
     OAuth2Session,
 )
+from homeassistant.exceptions import ConfigEntryAuthFailed
 
 from .const import DOMAIN
 
@@ -277,6 +278,17 @@ class RemehaHomeOAuth2Implementation(AbstractOAuth2Implementation):
                 data=grant_params,
                 allow_redirects=True,
             ) as response:
+                # NOTE: The OAuth2 token request sometimes returns a "400 Bad Request" response. The root cause of this
+                #       problem has not been found, but this workaround allows you to reauthenticate at least. Otherwise
+                #       Home Assitant would get stuck on refreshing the token forever.
+                if response.status == 400:
+                    response_json = await response.json()
+                    _LOGGER.error(
+                        "OAuth2 token request returned '400 Bad Request': %s",
+                        response_json["error_description"],
+                    )
+                    raise ConfigEntryAuthFailed
+
                 response.raise_for_status()
                 response_json = await response.json()
 
