@@ -81,6 +81,7 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_precision = PRECISION_HALVES
     _attr_has_entity_name = True
+    _attr_name = None
     _attr_translation_key = "remeha_home"
 
     def __init__(
