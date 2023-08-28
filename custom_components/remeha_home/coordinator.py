@@ -123,7 +123,7 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
         last_consumption_date = datetime.datetime.strptime(
             last_consumption_date, "%y-%m-%dT%H:%M:%S"
         )
-        return today == last_consumption_date
+        return today != last_consumption_date.date()
 
     def get_by_id(self, item_id: str):
         """Return item with the specified item id."""
