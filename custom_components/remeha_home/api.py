@@ -5,6 +5,7 @@ import json
 import logging
 import secrets
 import urllib
+import datetime
 
 import async_timeout
 from aiohttp import ClientSession
@@ -126,6 +127,21 @@ class RemehaHomeAPI:
         response = await self._async_api_request(
             "GET",
             f"/appliances/{appliance_id}/technicaldetails",
+        )
+        response.raise_for_status()
+        return await response.json()
+
+    async def async_get_consumption_data(self, appliance_id: str) -> dict:
+        """Get technical information for an appliance."""
+        # API fails if only 1 day is provided
+        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%fZ")
+        yesterday = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime(
+            "%Y-%m-%d %H:%M:%S.%fZ"
+        )
+
+        response = await self._async_api_request(
+            "GET",
+            f"/appliances/{appliance_id}/energyconsumption/daily?startDate={yesterday}&endDate={now}",
         )
         response.raise_for_status()
         return await response.json()
