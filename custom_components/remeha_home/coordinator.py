@@ -74,20 +74,40 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
                 model=self.technical_info[appliance_id]["applianceName"],
             )
 
-            for i, climate_zone in enumerate(appliance["climateZones"]):
+            for climate_zone in appliance["climateZones"]:
                 climate_zone_id = climate_zone["climateZoneId"]
-                # This assumes every climate zone has a thermostat
-                technical_info = self.technical_info[appliance_id][
+                # This assumes that all climate zones for an appliance share the same gateway
+                gateways = self.technical_info[appliance_id][
                     "internetConnectedGateways"
-                ][i]
+                ]
+
+                if len(gateways) > 1:
+                    _LOGGER.warning(
+                        "Appliance %s has more than one gateway, using technical information from the first one",
+                        appliance_id,
+                    )
+
+                if len(gateways) > 0:
+                    gateway_info = gateways[0]
+                else:
+                    _LOGGER.warning(
+                        "Appliance %s has no gateways, using unknown values",
+                        appliance_id,
+                    )
+                    gateway_info = {
+                        "name": "Unknown",
+                        "hardwareVersion": "Unknown",
+                        "softwareVersion": "Unknown",
+                    }
+
                 self.items[climate_zone_id] = climate_zone
                 self.device_info[climate_zone_id] = DeviceInfo(
                     identifiers={(DOMAIN, climate_zone_id)},
                     name=climate_zone["name"],
                     manufacturer="Remeha",
-                    model=technical_info["name"],
-                    hw_version=technical_info["hardwareVersion"],
-                    sw_version=technical_info["softwareVersion"],
+                    model=gateway_info["name"],
+                    hw_version=gateway_info["hardwareVersion"],
+                    sw_version=gateway_info["softwareVersion"],
                     via_device=(DOMAIN, appliance_id),
                 )
 
