@@ -42,7 +42,7 @@ Click the button or follow the instructions.
 
 ## Setup
 1. In Home Assitant click on `Configuration`
-1. Click on `Integrations`
+1. Click on `Devices & Services`
 1. Click on `+ Add integration`
 1. Search for and select `Remeha Home`
 1. Enter your email address and password
