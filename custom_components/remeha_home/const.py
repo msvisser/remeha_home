@@ -49,7 +49,7 @@ POWER_APPLIANCE_SENSOR_TYPES = [
         key="consumption_data.heatingEnergyConsumed",
         name="Heating consumption in m3",
         native_unit_of_measurement=UnitOfEnergy.CUBIC_METERS,
-        device_class=SensorDeviceClass.ENERGY,
+        device_class=SensorDeviceClass.GAS,
         state_class=SensorStateClass.TOTAL_INCREASING,
     ),
     # SensorEntityDescription(
@@ -63,7 +63,7 @@ POWER_APPLIANCE_SENSOR_TYPES = [
         key="consumption_data.hotWaterEnergyConsumed",
         name="HotWater consumption in m3",
         native_unit_of_measurement=UnitOfEnergy.CUBIC_METERS,
-        device_class=SensorDeviceClass.ENERGY,
+        device_class=SensorDeviceClass.GAS,
         state_class=SensorStateClass.TOTAL_INCREASING,
     ),
     # SensorEntityDescription(
@@ -77,7 +77,7 @@ POWER_APPLIANCE_SENSOR_TYPES = [
         key="consumption_data.coolingEnergyConsumed",
         name="Cooling consumption in m3",
         native_unit_of_measurement=UnitOfEnergy.CUBIC_METERS,
-        device_class=SensorDeviceClass.ENERGY,
+        device_class=SensorDeviceClass.GAS,
         state_class=SensorStateClass.TOTAL_INCREASING,
     ),
     # SensorEntityDescription(
@@ -91,7 +91,7 @@ POWER_APPLIANCE_SENSOR_TYPES = [
         key="consumption_data.heatingEnergyDelivered",
         name="Heating delivered in m3",
         native_unit_of_measurement=UnitOfEnergy.CUBIC_METERS,
-        device_class=SensorDeviceClass.ENERGY,
+        device_class=SensorDeviceClass.GAS,
         state_class=SensorStateClass.TOTAL_INCREASING,
     ),
     # SensorEntityDescription(
@@ -105,7 +105,7 @@ POWER_APPLIANCE_SENSOR_TYPES = [
         key="consumption_data.hotWaterEnergyDelivered",
         name="HotWater delivered in m3",
         native_unit_of_measurement=UnitOfEnergy.CUBIC_METERS,
-        device_class=SensorDeviceClass.ENERGY,
+        device_class=SensorDeviceClass.GAS,
         state_class=SensorStateClass.TOTAL_INCREASING,
     ),
     # SensorEntityDescription(
@@ -119,7 +119,7 @@ POWER_APPLIANCE_SENSOR_TYPES = [
         key="consumption_data.coolingEnergyDelivered",
         name="Cooling delivered in m3",
         native_unit_of_measurement=UnitOfEnergy.CUBIC_METERS,
-        device_class=SensorDeviceClass.ENERGY,
+        device_class=SensorDeviceClass.GAS,
         state_class=SensorStateClass.TOTAL_INCREASING,
     )
 ]
