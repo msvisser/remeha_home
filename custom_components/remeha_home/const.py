@@ -8,7 +8,7 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntityDescription,
     BinarySensorDeviceClass,
 )
-from homeassistant.const import UnitOfTemperature, UnitOfPressure, UnitOfEnergy
+from homeassistant.const import UnitOfTemperature, UnitOfPressure, UnitOfEnergy, UnitOfVolume
 
 DOMAIN = "remeha_home"
 
@@ -48,7 +48,7 @@ POWER_APPLIANCE_SENSOR_TYPES = [
     SensorEntityDescription(
         key="consumption_data.heatingEnergyConsumed",
         name="Heating consumption in m3",
-        native_unit_of_measurement=UnitOfEnergy.CUBIC_METERS,
+        native_unit_of_measurement=UnitOfVolume.CUBIC_METERS,
         device_class=SensorDeviceClass.GAS,
         state_class=SensorStateClass.TOTAL_INCREASING,
     ),
@@ -62,7 +62,7 @@ POWER_APPLIANCE_SENSOR_TYPES = [
     SensorEntityDescription(
         key="consumption_data.hotWaterEnergyConsumed",
         name="HotWater consumption in m3",
-        native_unit_of_measurement=UnitOfEnergy.CUBIC_METERS,
+        native_unit_of_measurement=UnitOfVolume.CUBIC_METERS,
         device_class=SensorDeviceClass.GAS,
         state_class=SensorStateClass.TOTAL_INCREASING,
     ),
@@ -76,7 +76,7 @@ POWER_APPLIANCE_SENSOR_TYPES = [
     SensorEntityDescription(
         key="consumption_data.coolingEnergyConsumed",
         name="Cooling consumption in m3",
-        native_unit_of_measurement=UnitOfEnergy.CUBIC_METERS,
+        native_unit_of_measurement=UnitOfVolume.CUBIC_METERS,
         device_class=SensorDeviceClass.GAS,
         state_class=SensorStateClass.TOTAL_INCREASING,
     ),
@@ -90,7 +90,7 @@ POWER_APPLIANCE_SENSOR_TYPES = [
     SensorEntityDescription(
         key="consumption_data.heatingEnergyDelivered",
         name="Heating delivered in m3",
-        native_unit_of_measurement=UnitOfEnergy.CUBIC_METERS,
+        native_unit_of_measurement=UnitOfVolume.CUBIC_METERS,
         device_class=SensorDeviceClass.GAS,
         state_class=SensorStateClass.TOTAL_INCREASING,
     ),
@@ -104,7 +104,7 @@ POWER_APPLIANCE_SENSOR_TYPES = [
     SensorEntityDescription(
         key="consumption_data.hotWaterEnergyDelivered",
         name="HotWater delivered in m3",
-        native_unit_of_measurement=UnitOfEnergy.CUBIC_METERS,
+        native_unit_of_measurement=UnitOfVolume.CUBIC_METERS,
         device_class=SensorDeviceClass.GAS,
         state_class=SensorStateClass.TOTAL_INCREASING,
     ),
@@ -118,7 +118,7 @@ POWER_APPLIANCE_SENSOR_TYPES = [
     SensorEntityDescription(
         key="consumption_data.coolingEnergyDelivered",
         name="Cooling delivered in m3",
-        native_unit_of_measurement=UnitOfEnergy.CUBIC_METERS,
+        native_unit_of_measurement=UnitOfVolume.CUBIC_METERS,
         device_class=SensorDeviceClass.GAS,
         state_class=SensorStateClass.TOTAL_INCREASING,
     )
