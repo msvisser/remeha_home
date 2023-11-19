@@ -1,5 +1,6 @@
 """API for Remeha Home bound to Home Assistant OAuth."""
 import base64
+import datetime
 import hashlib
 import json
 import logging
@@ -126,6 +127,23 @@ class RemehaHomeAPI:
         response = await self._async_api_request(
             "GET",
             f"/appliances/{appliance_id}/technicaldetails",
+        )
+        response.raise_for_status()
+        return await response.json()
+
+    async def async_get_consumption_data_for_today(self, appliance_id: str) -> dict:
+        """Get technical information for an appliance."""
+        today = datetime.datetime.now().replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+        end_of_today = today + datetime.timedelta(hours=23, minutes=59, seconds=59)
+
+        today_string = today.strftime("%Y-%m-%d %H:%M:%S.%fZ")
+        end_of_today_string = end_of_today.strftime("%Y-%m-%d %H:%M:%S.%fZ")
+
+        response = await self._async_api_request(
+            "GET",
+            f"/appliances/{appliance_id}/energyconsumption/daily?startDate={today_string}&endDate={end_of_today_string}",
         )
         response.raise_for_status()
         return await response.json()

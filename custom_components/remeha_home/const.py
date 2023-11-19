@@ -8,7 +8,7 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntityDescription,
     BinarySensorDeviceClass,
 )
-from homeassistant.const import UnitOfTemperature, UnitOfPressure
+from homeassistant.const import UnitOfEnergy, UnitOfTemperature, UnitOfPressure
 
 DOMAIN = "remeha_home"
 
@@ -34,6 +34,54 @@ APPLIANCE_SENSOR_TYPES = [
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
+    ),
+    SensorEntityDescription(
+        key="consumptionData.heatingEnergyConsumed",
+        name="Heating Energy Consumed",
+        entity_registry_enabled_default=False,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+    ),
+    SensorEntityDescription(
+        key="consumptionData.hotWaterEnergyConsumed",
+        name="Hot Water Energy Consumed",
+        entity_registry_enabled_default=False,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+    ),
+    SensorEntityDescription(
+        key="consumptionData.coolingEnergyConsumed",
+        name="Cooling Energy Consumed",
+        entity_registry_enabled_default=False,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+    ),
+    SensorEntityDescription(
+        key="consumptionData.heatingEnergyDelivered",
+        name="Heating Energy Delivered",
+        entity_registry_enabled_default=False,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+    ),
+    SensorEntityDescription(
+        key="consumptionData.hotWaterEnergyDelivered",
+        name="Hot Water Energy Delivered",
+        entity_registry_enabled_default=False,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+    ),
+    SensorEntityDescription(
+        key="consumptionData.coolingEnergyDelivered",
+        name="Cooling Energy Delivered",
+        entity_registry_enabled_default=False,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.TOTAL_INCREASING,
     ),
 ]
 
