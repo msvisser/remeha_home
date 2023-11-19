@@ -68,8 +68,8 @@ class RemehaHomeAPI:
         response.raise_for_status()
 
     async def async_set_schedule(self, climate_zone_id: str, heating_program_id: int):
-        """
-        Set a climate zone to schedule mode.
+        """Set a climate zone to schedule mode.
+
         The supplied heating program id should match the current heating program id.
         """
         response = await self._async_api_request(
@@ -139,6 +139,7 @@ class RemehaHomeOAuth2Implementation(AbstractOAuth2Implementation):
     """Custom OAuth2 implementation for the Remeha Home integration."""
 
     def __init__(self, session: ClientSession) -> None:
+        """Create a Remeha Home OAuth2 implementation."""
         self._session = session
 
     @property

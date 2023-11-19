@@ -1,3 +1,4 @@
+"""Coordinator for fetching the Remeha Home data."""
 from datetime import timedelta
 import logging
 
