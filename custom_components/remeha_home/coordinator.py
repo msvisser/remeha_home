@@ -84,15 +84,30 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
                             appliance_id
                         )
                     )
-                    self.appliance_consumption_data[appliance_id] = consumption_data[
-                        "data"
-                    ][0]
-                    self.appliance_last_consumption_data_update[appliance_id] = now
                     _LOGGER.debug(
                         "Requested consumption data for appliance %s: %s",
                         appliance_id,
                         consumption_data,
                     )
+
+                    if len(consumption_data["data"]) > 0:
+                        self.appliance_consumption_data[
+                            appliance_id
+                        ] = consumption_data["data"][0]
+                    else:
+                        _LOGGER.warning(
+                            "No consumption data found for appliance %s", appliance_id
+                        )
+                        self.appliance_consumption_data[appliance_id] = {
+                            "heatingEnergyConsumed": 0.0,
+                            "hotWaterEnergyConsumed": 0.0,
+                            "coolingEnergyConsumed": 0.0,
+                            "heatingEnergyDelivered": 0.0,
+                            "hotWaterEnergyDelivered": 0.0,
+                            "coolingEnergyDelivered": 0.0,
+                        }
+
+                    self.appliance_last_consumption_data_update[appliance_id] = now
                 except ClientResponseError as err:
                     _LOGGER.warning(
                         "Failed to request consumption data for appliance %s: %s",
