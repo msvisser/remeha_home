@@ -59,7 +59,7 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Setup the Remeha Home climate entity from a config entry."""
+    """Set up the Remeha Home climate entity from a config entry."""
     api = hass.data[DOMAIN][entry.entry_id]["api"]
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
 
@@ -90,6 +90,7 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
         coordinator: RemehaHomeUpdateCoordinator,
         climate_zone_id: str,
     ) -> None:
+        """Create a Remeha Home climate entity."""
         super().__init__(coordinator)
         self.api = api
         self.coordinator = coordinator

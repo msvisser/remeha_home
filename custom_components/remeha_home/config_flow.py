@@ -22,6 +22,7 @@ class RemehaHomeLoginFlowHandler(AbstractOAuth2FlowHandler, domain=DOMAIN):
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
     def __init__(self):
+        """Create a Remeha Home login flow."""
         super().__init__()
         self.flow_impl: RemehaHomeOAuth2Implementation = None  # type: ignore
 

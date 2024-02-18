@@ -24,7 +24,7 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
-    """Setup the Remeha Home switch entities from a config entry."""
+    """Set up the Remeha Home switch entities from a config entry."""
     api = hass.data[DOMAIN][entry.entry_id]["api"]
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
 
@@ -52,6 +52,7 @@ class RemehaHomeSwitch(CoordinatorEntity, SwitchEntity):
         climate_zone_id: str,
         entity_description: SwitchEntityDescription,
     ) -> None:
+        """Create a Remeha Home switch entity."""
         super().__init__(coordinator)
         self.api = api
         self.climate_zone_id = climate_zone_id
@@ -86,6 +87,7 @@ class RemehaHomeFireplaceModeSwitch(RemehaHomeSwitch):
         coordinator: RemehaHomeUpdateCoordinator,
         climate_zone_id: str,
     ) -> None:
+        """Create a Remeha Home fireplace mode switch entity."""
         super().__init__(
             api,
             coordinator,
