@@ -1,5 +1,5 @@
-import datetime
-from datetime import timedelta
+"""Coordinator for fetching the Remeha Home data."""
+from datetime import datetime, timedelta
 import logging
 
 import async_timeout
@@ -31,6 +31,8 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
         self.items = {}
         self.device_info = {}
         self.technical_info = {}
+        self.appliance_consumption_data = {}
+        self.appliance_last_consumption_data_update = {}
 
     async def _async_update_data(self):
         """Fetch data from API endpoint.
@@ -51,6 +53,9 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
 
             raise UpdateFailed from err
 
+        # Save the current time for appliance usage data updates
+        now = datetime.now()
+
         for appliance in data["appliances"]:
             appliance_id = appliance["applianceId"]
             self.items[appliance_id] = appliance
@@ -67,6 +72,63 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
                     appliance_id,
                     self.technical_info[appliance_id],
                 )
+
+            # Only update appliance usage data every 15 minutes
+            if (appliance_id not in self.appliance_last_consumption_data_update) or (
+                now - self.appliance_last_consumption_data_update[appliance_id]
+                >= timedelta(minutes=14, seconds=45)
+            ):
+                try:
+                    consumption_data = (
+                        await self.api.async_get_consumption_data_for_today(
+                            appliance_id
+                        )
+                    )
+                    _LOGGER.debug(
+                        "Requested consumption data for appliance %s: %s",
+                        appliance_id,
+                        consumption_data,
+                    )
+
+                    if len(consumption_data["data"]) > 0:
+                        self.appliance_consumption_data[
+                            appliance_id
+                        ] = consumption_data["data"][0]
+                    else:
+                        _LOGGER.warning(
+                            "No consumption data found for appliance %s", appliance_id
+                        )
+                        self.appliance_consumption_data[appliance_id] = {
+                            "heatingEnergyConsumed": 0.0,
+                            "hotWaterEnergyConsumed": 0.0,
+                            "coolingEnergyConsumed": 0.0,
+                            "heatingEnergyDelivered": 0.0,
+                            "hotWaterEnergyDelivered": 0.0,
+                            "coolingEnergyDelivered": 0.0,
+                        }
+
+                    self.appliance_last_consumption_data_update[appliance_id] = now
+                except ClientResponseError as err:
+                    _LOGGER.warning(
+                        "Failed to request consumption data for appliance %s: %s",
+                        appliance_id,
+                        err,
+                    )
+
+            # Get the cached consumption data for the appliance or use default values
+            if appliance_id in self.appliance_consumption_data:
+                appliance["consumptionData"] = self.appliance_consumption_data[
+                    appliance_id
+                ]
+            else:
+                appliance["consumptionData"] = {
+                    "heatingEnergyConsumed": 0.0,
+                    "hotWaterEnergyConsumed": 0.0,
+                    "coolingEnergyConsumed": 0.0,
+                    "heatingEnergyDelivered": 0.0,
+                    "hotWaterEnergyDelivered": 0.0,
+                    "coolingEnergyDelivered": 0.0,
+                }
 
             self.device_info[appliance_id] = DeviceInfo(
                 identifiers={(DOMAIN, appliance_id)},

@@ -1,7 +1,7 @@
 """Platform for binary sensor integration."""
 from __future__ import annotations
 import logging
-from typing import Callable
+from collections.abc import Callable
 
 
 from homeassistant.components.binary_sensor import (
@@ -27,7 +27,7 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
-    """Setup the Remeha Home sensor entities from a config entry."""
+    """Set up the Remeha Home sensor entities from a config entry."""
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
 
     entities = []
@@ -77,6 +77,7 @@ class RemehaHomeBinarySensor(CoordinatorEntity, BinarySensorEntity):
         entity_description: BinarySensorEntityDescription,
         transform_func: Callable[[str], bool],
     ) -> None:
+        """Create a Remeha Home binary sensor entity."""
         super().__init__(coordinator)
         self.entity_description = entity_description
         self.transform_func = transform_func
