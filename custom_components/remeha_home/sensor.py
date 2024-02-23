@@ -31,7 +31,7 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
-    """Setup the Remeha Home sensor entities from a config entry."""
+    """Set up the Remeha Home sensor entities from a config entry."""
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
     power_coordinator = hass.data[DOMAIN][entry.entry_id]["power_coordinator"]
 
@@ -74,6 +74,7 @@ class RemehaHomeSensor(CoordinatorEntity, SensorEntity):
         item_id: str,
         entity_description: SensorEntityDescription,
     ) -> None:
+        """Create a Remeha Home sensor entity."""
         super().__init__(coordinator)
         self.entity_description = entity_description
         self.item_id = item_id

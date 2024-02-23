@@ -8,7 +8,7 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntityDescription,
     BinarySensorDeviceClass,
 )
-from homeassistant.const import UnitOfTemperature, UnitOfPressure, UnitOfEnergy, UnitOfVolume
+from homeassistant.const import UnitOfEnergy, UnitOfTemperature, UnitOfPressure, UnitOfVolume
 
 DOMAIN = "remeha_home"
 
@@ -38,90 +38,54 @@ APPLIANCE_SENSOR_TYPES = [
 ]
 
 POWER_APPLIANCE_SENSOR_TYPES = [
-    # SensorEntityDescription(
-    #     key="consumption_data.heatingEnergyConsumed",
-    #     name="Heating consumption in kWh",
-    #     native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
-    #     device_class=SensorDeviceClass.ENERGY,
-    #     state_class=SensorStateClass.TOTAL_INCREASING,
-    # ),
     SensorEntityDescription(
-        key="consumption_data.heatingEnergyConsumed",
-        name="Heating consumption in m3",
-        native_unit_of_measurement=UnitOfVolume.CUBIC_METERS,
-        device_class=SensorDeviceClass.GAS,
+        key="consumptionData.heatingEnergyConsumed",
+        name="Heating Energy Consumed in kWh",
+        entity_registry_enabled_default=False,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL_INCREASING,
     ),
-    # SensorEntityDescription(
-    #     key="consumption_data.hotWaterEnergyConsumed",
-    #     name="HotWater consumption in kWh",
-    #     native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
-    #     device_class=SensorDeviceClass.ENERGY,
-    #     state_class=SensorStateClass.TOTAL_INCREASING,
-    # ),
     SensorEntityDescription(
-        key="consumption_data.hotWaterEnergyConsumed",
-        name="HotWater consumption in m3",
-        native_unit_of_measurement=UnitOfVolume.CUBIC_METERS,
-        device_class=SensorDeviceClass.GAS,
+        key="consumptionData.hotWaterEnergyConsumed",
+        name="Hot Water Energy Consumed in kWh",
+        entity_registry_enabled_default=False,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL_INCREASING,
     ),
-    # SensorEntityDescription(
-    #     key="consumption_data.coolingEnergyConsumed",
-    #     name="Cooling consumption in kWh",
-    #     native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
-    #     device_class=SensorDeviceClass.ENERGY,
-    #     state_class=SensorStateClass.TOTAL_INCREASING,
-    # ),
     SensorEntityDescription(
-        key="consumption_data.coolingEnergyConsumed",
-        name="Cooling consumption in m3",
-        native_unit_of_measurement=UnitOfVolume.CUBIC_METERS,
-        device_class=SensorDeviceClass.GAS,
+        key="consumptionData.coolingEnergyConsumed",
+        name="Cooling Energy Consumed in kWh",
+        entity_registry_enabled_default=False,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL_INCREASING,
     ),
-    # SensorEntityDescription(
-    #     key="consumption_data.heatingEnergyDelivered",
-    #     name="Heating delivered in kWh",
-    #     native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
-    #     device_class=SensorDeviceClass.ENERGY,
-    #     state_class=SensorStateClass.TOTAL_INCREASING,
-    # ),
     SensorEntityDescription(
-        key="consumption_data.heatingEnergyDelivered",
-        name="Heating delivered in m3",
-        native_unit_of_measurement=UnitOfVolume.CUBIC_METERS,
-        device_class=SensorDeviceClass.GAS,
+        key="consumptionData.heatingEnergyDelivered",
+        name="Heating Energy Delivered in kWh",
+        entity_registry_enabled_default=False,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL_INCREASING,
     ),
-    # SensorEntityDescription(
-    #     key="consumption_data.hotWaterEnergyDelivered",
-    #     name="HotWater delivered in kWh",
-    #     native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
-    #     device_class=SensorDeviceClass.ENERGY,
-    #     state_class=SensorStateClass.TOTAL_INCREASING,
-    # ),
     SensorEntityDescription(
-        key="consumption_data.hotWaterEnergyDelivered",
-        name="HotWater delivered in m3",
-        native_unit_of_measurement=UnitOfVolume.CUBIC_METERS,
-        device_class=SensorDeviceClass.GAS,
+        key="consumptionData.hotWaterEnergyDelivered",
+        name="Hot Water Energy Delivered in kWh",
+        entity_registry_enabled_default=False,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL_INCREASING,
     ),
-    # SensorEntityDescription(
-    #     key="consumption_data.coolingEnergyDelivered",
-    #     name="Cooling delivered in kWh",
-    #     native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
-    #     device_class=SensorDeviceClass.ENERGY,
-    #     state_class=SensorStateClass.TOTAL_INCREASING,
-    # ),
     SensorEntityDescription(
-        key="consumption_data.coolingEnergyDelivered",
-        name="Cooling delivered in m3",
-        native_unit_of_measurement=UnitOfVolume.CUBIC_METERS,
-        device_class=SensorDeviceClass.GAS,
+        key="consumptionData.coolingEnergyDelivered",
+        name="Cooling Energy Delivered in kWh",
+        entity_registry_enabled_default=False,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL_INCREASING,
-    )
+    ),
 ]
 
 CLIMATE_ZONE_SENSOR_TYPES = [

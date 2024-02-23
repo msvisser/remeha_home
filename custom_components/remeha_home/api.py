@@ -1,5 +1,6 @@
 """API for Remeha Home bound to Home Assistant OAuth."""
 import base64
+import datetime
 import hashlib
 import json
 import logging
@@ -69,8 +70,8 @@ class RemehaHomeAPI:
         response.raise_for_status()
 
     async def async_set_schedule(self, climate_zone_id: str, heating_program_id: int):
-        """
-        Set a climate zone to schedule mode.
+        """Set a climate zone to schedule mode.
+
         The supplied heating program id should match the current heating program id.
         """
         response = await self._async_api_request(
@@ -131,17 +132,19 @@ class RemehaHomeAPI:
         response.raise_for_status()
         return await response.json()
 
-    async def async_get_consumption_data(self, appliance_id: str) -> dict:
+    async def async_get_consumption_data_for_today(self, appliance_id: str) -> dict:
         """Get technical information for an appliance."""
-        # API fails if only 1 day is provided
-        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%fZ")
-        yesterday = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime(
-            "%Y-%m-%d %H:%M:%S.%fZ"
+        today = datetime.datetime.now().replace(
+            hour=0, minute=0, second=0, microsecond=0
         )
+        end_of_today = today + datetime.timedelta(hours=23, minutes=59, seconds=59)
+
+        today_string = today.strftime("%Y-%m-%d %H:%M:%S.%fZ")
+        end_of_today_string = end_of_today.strftime("%Y-%m-%d %H:%M:%S.%fZ")
 
         response = await self._async_api_request(
             "GET",
-            f"/appliances/{appliance_id}/energyconsumption/daily?startDate={yesterday}&endDate={now}",
+            f"/appliances/{appliance_id}/energyconsumption/daily?startDate={today_string}&endDate={end_of_today_string}",
         )
         response.raise_for_status()
         return await response.json()
@@ -155,6 +158,7 @@ class RemehaHomeOAuth2Implementation(AbstractOAuth2Implementation):
     """Custom OAuth2 implementation for the Remeha Home integration."""
 
     def __init__(self, session: ClientSession) -> None:
+        """Create a Remeha Home OAuth2 implementation."""
         self._session = session
 
     @property
