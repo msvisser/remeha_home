@@ -5,8 +5,8 @@ import logging
 import async_timeout
 from aiohttp.client_exceptions import ClientResponseError
 
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.helpers.typing import HomeAssistantType
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.exceptions import ConfigEntryAuthFailed
 
@@ -19,7 +19,7 @@ _LOGGER = logging.getLogger(__name__)
 class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
     """Remeha Home update coordinator."""
 
-    def __init__(self, hass: HomeAssistantType, api: RemehaHomeAPI) -> None:
+    def __init__(self, hass: HomeAssistant, api: RemehaHomeAPI) -> None:
         """Initialize Remeha Home update coordinator."""
         super().__init__(
             hass,
