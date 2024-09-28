@@ -118,6 +118,12 @@ HOT_WATER_ZONE_SENSOR_TYPES = [
         name="Status",
         entity_registry_enabled_default=False,
     ),
+    SensorEntityDescription(
+        key="comfortSetPoint",
+        name="Comfort Setpoint Temperature",
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
 ]
 
 CLIMATE_ZONE_BINARY_SENSOR_TYPES = [
@@ -141,5 +147,14 @@ HOT_WATER_ZONE_BINARY_SENSOR_TYPES = [
             device_class=BinarySensorDeviceClass.HEAT,
         ),
         lambda value: value == "ProducingHeat",
+    ),
+    (
+        BinarySensorEntityDescription(
+            key="dhwZoneMode",
+            name="Hot Water Mode",
+            device_class=BinarySensorDeviceClass.RUNNING,
+            entity_registry_enabled_default=True,
+        ),
+        lambda value: value == "ContinuousComfort",
     ),
 ]
