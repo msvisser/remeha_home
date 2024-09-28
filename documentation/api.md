@@ -203,3 +203,14 @@ See `daily` for the response format.
 ## GET `appliances/{appliance_id}/energyconsumption/yearly`
 Get the yearly energy consumption of the appliance.
 See `daily` for the response format.
+
+
+## POST `/hot-water-zones/{hot_water_zone_id}/modes/continuous-comfort`
+Set the hot water to comfort mode
+
+## POST `/hot-water-zones/{hot_water_zone_id}/modes/schedule`
+Set the hot water to schedule mode
+
+## POST `/hot-water-zones/{hot_water_zone_id}/modes/anti-frost`
+Set the hot water to eco mode, in fact off.
+
