@@ -120,6 +120,23 @@ class RemehaHomeAPI:
         )
         response.raise_for_status()
 
+    async def async_set_dhw_mode(self, hot_water_zone_id: str, enabled: bool) -> None:
+        """Set the DHW continuous-comfort on/off for a given hot water zone."""
+        if enabled:
+            response = await self._async_api_request(
+                "POST",
+                f"/hot-water-zones/{hot_water_zone_id}/modes/continuous-comfort"
+            )
+            _LOGGER.debug(f"Response from enabling continuous-comfort: {response}")
+            response.raise_for_status()
+        else:
+            response = await self._async_api_request(
+                "POST",
+                f"/hot-water-zones/{hot_water_zone_id}/modes/anti-frost"
+            )
+            _LOGGER.debug(f"Response from disabling: {response}")
+            response.raise_for_status()
+            
     async def async_get_appliance_technical_information(
         self, appliance_id: str
     ) -> dict:
