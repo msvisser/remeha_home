@@ -37,8 +37,15 @@ async def async_setup_entry(
                 RemehaHomeFireplaceModeSwitch(api, coordinator, climate_zone_id)
             )
 
-    async_add_entities(entities)
+    for hot_water_zone in appliance["hotWaterZones"]:
+            hot_water_zone_id = hot_water_zone["hotWaterZoneId"]
 
+            # Add the DHW mode switch entity
+            entities.append(
+                RemehaHomeHotWaterSwitch(api, coordinator, hot_water_zone_id)
+            )
+    
+    async_add_entities(entities)
 
 class RemehaHomeSwitch(CoordinatorEntity, SwitchEntity):
     """Representation of a switch."""
@@ -116,4 +123,43 @@ class RemehaHomeFireplaceModeSwitch(RemehaHomeSwitch):
         """Turn the entity off."""
         _LOGGER.debug("Disable fireplace mode")
         await self.api.async_set_fireplace_mode(self.climate_zone_id, False)
+        await self.coordinator.async_request_refresh()
+
+class RemehaHomeHotWaterSwitch(RemehaHomeSwitch):
+    """Representation of a HotWater switch."""
+
+    def __init__(
+        self,
+        api: RemehaHomeAPI,
+        coordinator: RemehaHomeUpdateCoordinator,
+        hot_water_zone_id: str,
+    ) -> None:
+        """Create a Remeha Home Hot Water switch entity."""
+        super().__init__(
+            api,
+            coordinator,
+            hot_water_zone_id,
+            SwitchEntityDescription(
+                key="dhwZoneMode",
+                name="Hot Water",
+                device_class=SwitchDeviceClass.SWITCH,
+            ),
+        )
+        self.hot_water_zone_id = hot_water_zone_id  # Initialize the attribute
+
+    @property
+    def is_on(self) -> bool:
+        """Return the current state of the DHW mode (True if ContinuousComfort is on)."""
+        return self._data["dhwZoneMode"] == "ContinuousComfort"
+
+    async def async_turn_on(self, **kwargs):
+        """Turn the entity on."""
+        _LOGGER.debug("Enable hotwater mode")
+        await self.api.async_set_dhw_mode(self.hot_water_zone_id, True)
+        await self.coordinator.async_request_refresh()
+
+    async def async_turn_off(self, **kwargs):
+        """Turn the entity off."""
+        _LOGGER.debug("Disable hotwater mode")
+        await self.api.async_set_dhw_mode(self.hot_water_zone_id, False)
         await self.coordinator.async_request_refresh()
