@@ -1,4 +1,5 @@
 """Platform for Remeha Home climate integration."""
+
 from __future__ import annotations
 from typing import Any
 import logging

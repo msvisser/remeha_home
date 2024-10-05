@@ -1,4 +1,5 @@
 """API for Remeha Home bound to Home Assistant OAuth."""
+
 import base64
 import datetime
 import hashlib

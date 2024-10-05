@@ -1,4 +1,5 @@
 """Coordinator for fetching the Remeha Home data."""
+
 from datetime import datetime, timedelta
 import logging
 
@@ -62,10 +63,10 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
 
             # Request appliance technical information the first time it is discovered
             if appliance_id not in self.technical_info:
-                self.technical_info[
-                    appliance_id
-                ] = await self.api.async_get_appliance_technical_information(
-                    appliance_id
+                self.technical_info[appliance_id] = (
+                    await self.api.async_get_appliance_technical_information(
+                        appliance_id
+                    )
                 )
                 _LOGGER.debug(
                     "Requested technical information for appliance %s: %s",
@@ -91,9 +92,9 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
                     )
 
                     if len(consumption_data["data"]) > 0:
-                        self.appliance_consumption_data[
-                            appliance_id
-                        ] = consumption_data["data"][0]
+                        self.appliance_consumption_data[appliance_id] = (
+                            consumption_data["data"][0]
+                        )
                     else:
                         _LOGGER.warning(
                             "No consumption data found for appliance %s", appliance_id
