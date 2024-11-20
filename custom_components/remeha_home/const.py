@@ -1,4 +1,5 @@
 """Constants for the Remeha Home integration."""
+
 from homeassistant.components.sensor import (
     SensorEntityDescription,
     SensorDeviceClass,

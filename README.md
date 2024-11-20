@@ -4,6 +4,9 @@ This integration lets you control your Remeha Home thermostats from Home Assista
 **Before using this integration, make sure you have set up your thermostat in the [Remeha Home](https://play.google.com/store/apps/details?id=com.bdrthermea.application.remeha) app.**
 If you are unable to use the Remeha Home app for your thermostat, this integration will not work.
 
+There have been reports by users that this intergration will also work for Baxi, De Dietrich, and Brötje systems (and possibly other BDR Thermea products).
+You can simply log in using the credentials that you would use in the respective apps.
+
 ## Current features
 - All climate zones are exposed as [climate](https://www.home-assistant.io/integrations/climate/) entities with:
     - The following modes:
