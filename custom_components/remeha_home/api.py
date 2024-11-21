@@ -34,7 +34,6 @@ class RemehaHomeAPI:
 
     async def async_get_access_token(self) -> str:
         """Return a valid access token."""
-        _LOGGER.warning("GOT HERE")
         if not self._oauth_session.valid_token:
             await self._oauth_session.async_ensure_token_valid()
 
@@ -54,7 +53,9 @@ class RemehaHomeAPI:
 
     async def async_get_dashboard(self) -> dict:
         """Return the Remeha Home dashboard JSON."""
-        response = await self._async_api_request("GET", "/homes/dashboard")
+        # Add a timestamp to the request to prevent caching
+        timestamp = int(datetime.datetime.now().timestamp())
+        response = await self._async_api_request("GET", f"/homes/dashboard?t={timestamp}")
         response.raise_for_status()
         return await response.json()
 
