@@ -88,7 +88,7 @@ APPLIANCE_SENSOR_TYPES = [
 
 ELECTRIC_PRODUCER_SENSOR_TYPES = [
     SensorEntityDescription(
-        key="cenergyConsumptionCH",
+        key="energyConsumptionCH",
         name="Heating Energy Consumed",
         entity_registry_enabled_default=False,
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,

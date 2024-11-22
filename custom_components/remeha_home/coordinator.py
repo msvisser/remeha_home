@@ -199,8 +199,9 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
                         producer_id ="{0}_{1}".format(appliance_id,producer["instanceWithinDevice"])
                         if producer["energyType"] == "NaturalGas":
                             """Recalculate energy values back to gas values when Gas device"""
-                            producer["energyConsumptionCH"] = producer["energyConsumptionCH"] / appliance["gasCalorificValue"]
-                            producer["energyConsumptionDHW"] = producer["energyConsumptionDHW"] / appliance["gasCalorificValue"]
+
+                            producer["energyConsumptionCH"] = float(producer["energyConsumptionCH"]) / float(appliance["gasCalorificValue"])
+                            producer["energyConsumptionDHW"] = float(producer["energyConsumptionDHW"]) / float(appliance["gasCalorificValue"])
                         self.items[producer_id] = producer
                         self.device_info[producer_id] = DeviceInfo(
                             identifiers={(DOMAIN, producer_id)},
