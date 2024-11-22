@@ -106,6 +106,9 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
                             "heatingEnergyDelivered": 0.0,
                             "hotWaterEnergyDelivered": 0.0,
                             "coolingEnergyDelivered": 0.0,
+                            "producerPerformanceStatistics": {
+                                "producers":[]
+                            }
                         }
 
                     self.appliance_last_consumption_data_update[appliance_id] = now
@@ -129,6 +132,9 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
                     "heatingEnergyDelivered": 0.0,
                     "hotWaterEnergyDelivered": 0.0,
                     "coolingEnergyDelivered": 0.0,
+                    "producerPerformanceStatistics": {
+                        "producers":[]
+                    }
                 }
 
             self.device_info[appliance_id] = DeviceInfo(
@@ -186,6 +192,23 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
                     via_device=(DOMAIN, appliance_id),
                 )
 
+            if appliance["consumptionData"]["producerPerformanceStatistics"]:
+                if len(appliance["consumptionData"]["producerPerformanceStatistics"]["producers"]) >1:
+                    """Only add producers when more then 1"""
+                    for producer in appliance["consumptionData"]["producerPerformanceStatistics"]["producers"]:
+                        producer_id ="{0}_{1}".format(appliance_id,producer["instanceWithinDevice"])
+                        if producer["energyType"] == "NaturalGas":
+                            """Recalculate energy values back to gas values when Gas device"""
+                            producer["energyConsumptionCH"] = producer["energyConsumptionCH"] / appliance["gasCalorificValue"]
+                            producer["energyConsumptionDHW"] = producer["energyConsumptionDHW"] / appliance["gasCalorificValue"]
+                        self.items[producer_id] = producer
+                        self.device_info[producer_id] = DeviceInfo(
+                            identifiers={(DOMAIN, producer_id)},
+                            name="{0}_{1}".format(producer["producerType"],producer["instanceWithinDevice"]),
+                            manufacturer="Remeha",
+                            model=producer["producerType"],
+                            via_device=(DOMAIN, appliance_id),
+                        )
         return data
 
     def get_by_id(self, item_id: str):
