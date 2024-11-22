@@ -9,7 +9,7 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntityDescription,
     BinarySensorDeviceClass,
 )
-from homeassistant.const import UnitOfEnergy, UnitOfTemperature, UnitOfPressure
+from homeassistant.const import UnitOfEnergy, UnitOfTemperature, UnitOfPressure, UnitOfVolume
 
 DOMAIN = "remeha_home"
 
@@ -142,6 +142,7 @@ GAS_PRODUCER_SENSOR_TYPES = [
         key="energyConsumptionCH",
         name="Heating Energy Consumed",
         entity_registry_enabled_default=False,
+        native_unit_of_measurement=UnitOfVolume.CUBIC_METERS,
         device_class=SensorDeviceClass.GAS,
         state_class=SensorStateClass.TOTAL_INCREASING,
     ),
@@ -149,6 +150,7 @@ GAS_PRODUCER_SENSOR_TYPES = [
         key="energyConsumptionDHW",
         name="Hot Water Energy Consumed",
         entity_registry_enabled_default=False,
+        native_unit_of_measurement=UnitOfVolume.CUBIC_METERS,
         device_class=SensorDeviceClass.GAS,
         state_class=SensorStateClass.TOTAL_INCREASING,
     )

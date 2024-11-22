@@ -92,6 +92,15 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
                     )
 
                     if len(consumption_data["data"]) > 0:
+                        if consumption_data["data"][0]["producerPerformanceStatistics"]["producers"]:
+                            for producer in consumption_data["data"][0]["producerPerformanceStatistics"]["producers"]:
+                                if producer["energyType"] == "NaturalGas":
+                                    """Recalculate energy values back to gas values when Gas device"""
+
+                                    producer["energyConsumptionCH"] = round(float(producer["energyConsumptionCH"]) / float(appliance["gasCalorificValue"]),2)
+                                    producer["energyConsumptionDHW"] = round(float(producer["energyConsumptionDHW"]) / float(appliance["gasCalorificValue"]),2)
+
+
                         self.appliance_consumption_data[appliance_id] = (
                             consumption_data["data"][0]
                         )
@@ -197,11 +206,6 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
                     """Only add producers when more then 1"""
                     for producer in appliance["consumptionData"]["producerPerformanceStatistics"]["producers"]:
                         producer_id ="{0}_{1}".format(appliance_id,producer["instanceWithinDevice"])
-                        if producer["energyType"] == "NaturalGas":
-                            """Recalculate energy values back to gas values when Gas device"""
-
-                            producer["energyConsumptionCH"] = float(producer["energyConsumptionCH"]) / float(appliance["gasCalorificValue"])
-                            producer["energyConsumptionDHW"] = float(producer["energyConsumptionDHW"]) / float(appliance["gasCalorificValue"])
                         self.items[producer_id] = producer
                         self.device_info[producer_id] = DeviceInfo(
                             identifiers={(DOMAIN, producer_id)},
