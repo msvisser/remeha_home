@@ -142,7 +142,7 @@ APPLIANCE_SENSOR_TYPES = [
     ),
     SensorEntityDescription(
         key="consumptionData.energyProductionTotalElectric",
-        name="Totlal Electric Energy Produced",
+        name="Total Electric Energy Produced",
         entity_registry_enabled_default=False,
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         device_class=SensorDeviceClass.ENERGY,
