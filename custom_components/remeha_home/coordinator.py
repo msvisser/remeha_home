@@ -16,6 +16,43 @@ from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
+PRODUCER_STATS = [
+    "energyConsumptionCH",
+    "energyConsumptionDHW",
+    "energyConsumptionCooling",
+    "energyConsumptionTotal",
+    "energyProductionCH",
+    "energyProductionDHW",
+    "energyProductionCooling",
+    "energyProductionTotal",
+]
+
+APPLIANCE_CONSUMPTION_DEFAULT_DATA = {
+    "heatingEnergyConsumed": 0.0,
+    "hotWaterEnergyConsumed": 0.0,
+    "coolingEnergyConsumed": 0.0,
+    "heatingEnergyDelivered": 0.0,
+    "hotWaterEnergyDelivered": 0.0,
+    "coolingEnergyDelivered": 0.0,
+    "energyConsumptionCHElectric": 0.0,
+    "energyConsumptionDHWElectric": 0.0,
+    "energyConsumptionCoolingElectric": 0.0,
+    "energyConsumptionTotalElectric": 0.0,
+    "energyProductionCHElectric": 0.0,
+    "energyProductionDHWElectric": 0.0,
+    "energyProductionCoolingElectric": 0.0,
+    "energyProductionTotalElectric": 0.0,
+    "energyConsumptionCHNaturalGas": 0.0,
+    "energyConsumptionDHWNaturalGas": 0.0,
+    "energyConsumptionCoolingNaturalGas": 0.0,
+    "energyConsumptionTotalNaturalGas": 0.0,
+    "energyProductionCHNaturalGas": 0.0,
+    "energyProductionDHWNaturalGas": 0.0,
+    "energyProductionCoolingNaturalGas": 0.0,
+    "energyProductionTotalNaturalGas": 0.0,
+    "seasonalEfficiencyElectric": 0.0,
+}
+
 
 class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
     """Remeha Home update coordinator."""
@@ -99,14 +136,29 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
                         _LOGGER.warning(
                             "No consumption data found for appliance %s", appliance_id
                         )
-                        self.appliance_consumption_data[appliance_id] = {
-                            "heatingEnergyConsumed": 0.0,
-                            "hotWaterEnergyConsumed": 0.0,
-                            "coolingEnergyConsumed": 0.0,
-                            "heatingEnergyDelivered": 0.0,
-                            "hotWaterEnergyDelivered": 0.0,
-                            "coolingEnergyDelivered": 0.0,
-                        }
+                        self.appliance_consumption_data[appliance_id] = (
+                            APPLIANCE_CONSUMPTION_DEFAULT_DATA
+                        )
+
+                    if (
+                        "producerPerformanceStatistics"
+                        in self.appliance_consumption_data[appliance_id]
+                    ):
+                        for producer in self.appliance_consumption_data[appliance_id][
+                            "producerPerformanceStatistics"
+                        ]["producers"]:
+                            for producer_stat in PRODUCER_STATS:
+                                stat = f"{producer_stat}{producer["energyType"]}"
+                                self.appliance_consumption_data[appliance_id][stat] = (
+                                    self.appliance_consumption_data[appliance_id].get(
+                                        stat, 0.0
+                                    )
+                                    + producer.get(producer_stat, 0.0)
+                                )
+
+                            self.appliance_consumption_data[appliance_id][
+                                f"seasonalEfficiency{producer["energyType"]}"
+                            ] = producer.get("seasonalEfficiency", 0.0)
 
                     self.appliance_last_consumption_data_update[appliance_id] = now
                 except ClientResponseError as err:
@@ -122,14 +174,7 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
                     appliance_id
                 ]
             else:
-                appliance["consumptionData"] = {
-                    "heatingEnergyConsumed": 0.0,
-                    "hotWaterEnergyConsumed": 0.0,
-                    "coolingEnergyConsumed": 0.0,
-                    "heatingEnergyDelivered": 0.0,
-                    "hotWaterEnergyDelivered": 0.0,
-                    "coolingEnergyDelivered": 0.0,
-                }
+                appliance["consumptionData"] = APPLIANCE_CONSUMPTION_DEFAULT_DATA
 
             self.device_info[appliance_id] = DeviceInfo(
                 identifiers={(DOMAIN, appliance_id)},
