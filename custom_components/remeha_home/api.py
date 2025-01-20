@@ -295,24 +295,23 @@ class RemehaHomeOAuth2Implementation(AbstractOAuth2Implementation):
 
     async def _async_request_new_token(self, grant_params):
         """Call the OAuth2 token endpoint with specific grant paramters."""
-        async with asyncio.timeout(30):
-            async with self._session.post(
-                "https://remehalogin.bdrthermea.net/bdrb2cprod.onmicrosoft.com/oauth2/v2.0/token?p=B2C_1A_RPSignUpSignInNewRoomV3.1",
-                data=grant_params,
-                allow_redirects=True,
-            ) as response:
-                # NOTE: The OAuth2 token request sometimes returns a "400 Bad Request" response. The root cause of this
-                #       problem has not been found, but this workaround allows you to reauthenticate at least. Otherwise
-                #       Home Assitant would get stuck on refreshing the token forever.
-                if response.status == 400:
-                    response_json = await response.json()
-                    _LOGGER.error(
-                        "OAuth2 token request returned '400 Bad Request': %s",
-                        response_json["error_description"],
-                    )
-                    raise ConfigEntryAuthFailed
-
-                response.raise_for_status()
+        async with asyncio.timeout(30), self._session.post(
+            "https://remehalogin.bdrthermea.net/bdrb2cprod.onmicrosoft.com/oauth2/v2.0/token?p=B2C_1A_RPSignUpSignInNewRoomV3.1",
+            data=grant_params,
+            allow_redirects=True,
+        ) as response:
+            # NOTE: The OAuth2 token request sometimes returns a "400 Bad Request" response. The root cause of this
+            #       problem has not been found, but this workaround allows you to reauthenticate at least. Otherwise
+            #       Home Assitant would get stuck on refreshing the token forever.
+            if response.status == 400:
                 response_json = await response.json()
+                _LOGGER.error(
+                    "OAuth2 token request returned '400 Bad Request': %s",
+                    response_json["error_description"],
+                )
+                raise ConfigEntryAuthFailed
+
+            response.raise_for_status()
+            response_json = await response.json()
 
         return response_json
