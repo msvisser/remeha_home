@@ -8,7 +8,7 @@ import logging
 import secrets
 import urllib
 
-import async_timeout
+import asyncio
 from aiohttp import ClientSession
 
 from homeassistant.helpers.config_entry_oauth2_flow import (
@@ -55,7 +55,9 @@ class RemehaHomeAPI:
         """Return the Remeha Home dashboard JSON."""
         # Add a timestamp to the request to prevent caching
         timestamp = int(datetime.datetime.now().timestamp())
-        response = await self._async_api_request("GET", f"/homes/dashboard?t={timestamp}")
+        response = await self._async_api_request(
+            "GET", f"/homes/dashboard?t={timestamp}"
+        )
         response.raise_for_status()
         return await response.json()
 
@@ -188,7 +190,7 @@ class RemehaHomeOAuth2Implementation(AbstractOAuth2Implementation):
             .rstrip("=")
         )
 
-        with async_timeout.timeout(60):
+        async with asyncio.timeout(60):
             # Request the login page starting a new login transaction
             response = await self._session.get(
                 "https://remehalogin.bdrthermea.net/bdrb2cprod.onmicrosoft.com/oauth2/v2.0/authorize",
@@ -293,7 +295,7 @@ class RemehaHomeOAuth2Implementation(AbstractOAuth2Implementation):
 
     async def _async_request_new_token(self, grant_params):
         """Call the OAuth2 token endpoint with specific grant paramters."""
-        with async_timeout.timeout(30):
+        async with asyncio.timeout(30):
             async with self._session.post(
                 "https://remehalogin.bdrthermea.net/bdrb2cprod.onmicrosoft.com/oauth2/v2.0/token?p=B2C_1A_RPSignUpSignInNewRoomV3.1",
                 data=grant_params,

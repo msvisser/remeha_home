@@ -3,7 +3,7 @@
 from datetime import datetime, timedelta
 import logging
 
-import async_timeout
+import asyncio
 from aiohttp.client_exceptions import ClientResponseError
 
 from homeassistant.core import HomeAssistant
@@ -44,7 +44,7 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
         try:
             # Note: asyncio.TimeoutError and aiohttp.ClientError are already
             # handled by the data update coordinator.
-            async with async_timeout.timeout(30):
+            async with asyncio.timeout(30):
                 data = await self.api.async_get_dashboard()
         except ClientResponseError as err:
             # Raising ConfigEntryAuthFailed will cancel future updates
