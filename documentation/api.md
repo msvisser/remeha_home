@@ -218,7 +218,43 @@ Response:
       "coolingEnergyConsumed": 0,
       "heatingEnergyDelivered": 0,
       "hotWaterEnergyDelivered": 0,
-      "coolingEnergyDelivered": 0
+      "coolingEnergyDelivered": 0,
+      "producerPerformanceStatistics": {
+                "producers": [
+                    {
+                        "isMigratedFromLegacy": false,
+                        "instanceWithinDevice": 1,
+                        "deviceIndex": "a3b5c3",
+                        "producerType": "HeatPumpAirSource",
+                        "energyType": "Electric",
+                        "energyConsumptionCH": 11.0,
+                        "energyConsumptionDHW": 0,
+                        "energyConsumptionCooling": 0,
+                        "energyConsumptionTotal": 11.0,
+                        "energyProductionCH": 40.0,
+                        "energyProductionDHW": 0,
+                        "energyProductionCooling": 0,
+                        "energyProductionTotal": 40.0,
+                        "seasonalEfficiency": null
+                    },
+                    {
+                        "isMigratedFromLegacy": false,
+                        "instanceWithinDevice": 2,
+                        "deviceIndex": "b7e4f9",
+                        "producerType": "GasBoiler",
+                        "energyType": "NaturalGas",
+                        "energyConsumptionCH": 17.0,
+                        "energyConsumptionDHW": 0,
+                        "energyConsumptionCooling": 0,
+                        "energyConsumptionTotal": 17.0,
+                        "energyProductionCH": 0,
+                        "energyProductionDHW": 0,
+                        "energyProductionCooling": 0,
+                        "energyProductionTotal": 0,
+                        "seasonalEfficiency": null
+                    }
+                ]
+            }
     },
     ...
   ]
