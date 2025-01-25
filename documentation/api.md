@@ -172,7 +172,36 @@ Request:
 }
 ```
 
-## GET `appliances/{appliance_id}/energyconsumption/daily`
+## POST `/hot-water-zones/{hot_water_zone_id}/modes/anti-frost`
+Switch to the Eco mode for the hot water zone.
+
+## POST `/hot-water-zones/{hot_water_zone_id}/modes/schedule`
+Switch to the Schedule mode for the hot water zone.
+
+## POST `/hot-water-zones/{hot_water_zone_id}/modes/continuous-comfort`
+Switch to the Comfort mode for the hot water zone.
+
+## POST `/hot-water-zones/{hot_water_zone_id}/reduced-setpoint`
+Set the target temperature of the Eco mode for the hot water zone.
+
+Request:
+```json
+{
+  "reducedSetpoint": 45.0
+}
+```
+
+## POST `/hot-water-zones/{hot_water_zone_id}/comfort-setpoint`
+Set the target temperature of the Comfort mode for the hot water zone.
+
+Request:
+```json
+{
+  "comfortSetpoint": 60.0
+}
+```
+
+## GET `/appliances/{appliance_id}/energyconsumption/daily`
 Get the daily energy consumption of the appliance.
 This request requires two query parameters, `startDate` and `endDate`, which should contain an ISO-8601 timestamp, e.g. `2023-01-03 00:00:00.000Z`.
 
@@ -196,10 +225,10 @@ Response:
 }
 ```
 
-## GET `appliances/{appliance_id}/energyconsumption/monthly`
+## GET `/appliances/{appliance_id}/energyconsumption/monthly`
 Get the monthly energy consumption of the appliance.
 See `daily` for the response format.
 
-## GET `appliances/{appliance_id}/energyconsumption/yearly`
+## GET `/appliances/{appliance_id}/energyconsumption/yearly`
 Get the yearly energy consumption of the appliance.
 See `daily` for the response format.

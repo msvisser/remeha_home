@@ -8,10 +8,14 @@
         },
         "step": {
             "auth": {
+                "description": "Setup the Remeha Home integration using your Remeha Home credentials.",
                 "data": {
                     "email": "Email address",
                     "password": "Password"
                 }
+            },
+            "reauth_confirm": {
+                "description": "Failed to refresh the Remeha Home access token. Please re-authenticate with your Remeha Home credentials to continue using this integration."
             }
         }
     },

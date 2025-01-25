@@ -8,7 +8,7 @@ import logging
 import secrets
 import urllib
 
-import async_timeout
+import asyncio
 from aiohttp import ClientSession
 
 from homeassistant.helpers.config_entry_oauth2_flow import (
@@ -34,7 +34,6 @@ class RemehaHomeAPI:
 
     async def async_get_access_token(self) -> str:
         """Return a valid access token."""
-        _LOGGER.warning("GOT HERE")
         if not self._oauth_session.valid_token:
             await self._oauth_session.async_ensure_token_valid()
 
@@ -54,7 +53,11 @@ class RemehaHomeAPI:
 
     async def async_get_dashboard(self) -> dict:
         """Return the Remeha Home dashboard JSON."""
-        response = await self._async_api_request("GET", "/homes/dashboard")
+        # Add a timestamp to the request to prevent caching
+        timestamp = int(datetime.datetime.now().timestamp())
+        response = await self._async_api_request(
+            "GET", f"/homes/dashboard?t={timestamp}"
+        )
         response.raise_for_status()
         return await response.json()
 
@@ -187,7 +190,7 @@ class RemehaHomeOAuth2Implementation(AbstractOAuth2Implementation):
             .rstrip("=")
         )
 
-        with async_timeout.timeout(60):
+        async with asyncio.timeout(60):
             # Request the login page starting a new login transaction
             response = await self._session.get(
                 "https://remehalogin.bdrthermea.net/bdrb2cprod.onmicrosoft.com/oauth2/v2.0/authorize",
@@ -292,24 +295,23 @@ class RemehaHomeOAuth2Implementation(AbstractOAuth2Implementation):
 
     async def _async_request_new_token(self, grant_params):
         """Call the OAuth2 token endpoint with specific grant paramters."""
-        with async_timeout.timeout(30):
-            async with self._session.post(
-                "https://remehalogin.bdrthermea.net/bdrb2cprod.onmicrosoft.com/oauth2/v2.0/token?p=B2C_1A_RPSignUpSignInNewRoomV3.1",
-                data=grant_params,
-                allow_redirects=True,
-            ) as response:
-                # NOTE: The OAuth2 token request sometimes returns a "400 Bad Request" response. The root cause of this
-                #       problem has not been found, but this workaround allows you to reauthenticate at least. Otherwise
-                #       Home Assitant would get stuck on refreshing the token forever.
-                if response.status == 400:
-                    response_json = await response.json()
-                    _LOGGER.error(
-                        "OAuth2 token request returned '400 Bad Request': %s",
-                        response_json["error_description"],
-                    )
-                    raise ConfigEntryAuthFailed
-
-                response.raise_for_status()
+        async with asyncio.timeout(30), self._session.post(
+            "https://remehalogin.bdrthermea.net/bdrb2cprod.onmicrosoft.com/oauth2/v2.0/token?p=B2C_1A_RPSignUpSignInNewRoomV3.1",
+            data=grant_params,
+            allow_redirects=True,
+        ) as response:
+            # NOTE: The OAuth2 token request sometimes returns a "400 Bad Request" response. The root cause of this
+            #       problem has not been found, but this workaround allows you to reauthenticate at least. Otherwise
+            #       Home Assitant would get stuck on refreshing the token forever.
+            if response.status == 400:
                 response_json = await response.json()
+                _LOGGER.error(
+                    "OAuth2 token request returned '400 Bad Request': %s",
+                    response_json["error_description"],
+                )
+                raise ConfigEntryAuthFailed
+
+            response.raise_for_status()
+            response_json = await response.json()
 
         return response_json
