@@ -104,7 +104,6 @@ Response:
       ],
       "houseName": "Home",
       "operatingMode": "AutomaticHeating",
-      "outdoorTemperature": null,
       "outdoorTemperatureInformation": {
         "applianceOutdoorTemperature": null,
         "cloudOutdoorTemperature": 2,
