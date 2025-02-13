@@ -46,6 +46,7 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
             # handled by the data update coordinator.
             async with asyncio.timeout(30):
                 data = await self.api.async_get_dashboard()
+                _LOGGER.debug("Requested dashboard information: %s", data)
         except ClientResponseError as err:
             # Raising ConfigEntryAuthFailed will cancel future updates
             # and start a config flow with SOURCE_REAUTH (async_step_reauth)

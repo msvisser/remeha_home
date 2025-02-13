@@ -22,7 +22,7 @@ APPLIANCE_SENSOR_TYPES = [
         state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
-        key="outdoorTemperature",
+        key="outdoorTemperatureInformation.applianceOutdoorTemperature",
         name="Outdoor Temperature",
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,

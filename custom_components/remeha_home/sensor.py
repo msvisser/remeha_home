@@ -85,6 +85,12 @@ class RemehaHomeSensor(CoordinatorEntity, SensorEntity):
         """Return the measurement value for this sensor."""
         data = self._data
         for part in self.entity_description.key.split("."):
+            # If the key is missing for some reason, don't crash, instead return None
+            if part not in data:
+                _LOGGER.warning(
+                    "Key not found in data: %s", self.entity_description.key
+                )
+                return None
             data = data[part]
         value = data
 
