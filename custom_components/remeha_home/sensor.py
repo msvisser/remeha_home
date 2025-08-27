@@ -21,6 +21,8 @@ from .const import (
     CLIMATE_ZONE_SENSOR_TYPES,
     DOMAIN,
     HOT_WATER_ZONE_SENSOR_TYPES,
+    GAS_PRODUCER_SENSOR_TYPES,
+    ELECTRIC_PRODUCER_SENSOR_TYPES
 )
 from .coordinator import RemehaHomeUpdateCoordinator
 
@@ -54,7 +56,21 @@ async def async_setup_entry(
                 entities.append(
                     RemehaHomeSensor(coordinator, hot_water_zone_id, entity_description)
                 )
-
+        if appliance["consumptionData"]["producerPerformanceStatistics"]:
+            if len(appliance["consumptionData"]["producerPerformanceStatistics"]["producers"]) > 1:
+                """Only add producers when more then 1"""
+                for producer in appliance["consumptionData"]["producerPerformanceStatistics"]["producers"]:
+                    producer_id ="{0}_{1}".format(appliance_id,producer["instanceWithinDevice"])
+                    if producer["energyType"] == "NaturalGas":
+                        for entity_description in GAS_PRODUCER_SENSOR_TYPES:
+                            entities.append(
+                                RemehaHomeSensor(coordinator, producer_id, entity_description)
+                            )
+                    else:
+                        for entity_description in ELECTRIC_PRODUCER_SENSOR_TYPES:
+                            entities.append(
+                                RemehaHomeSensor(coordinator, producer_id, entity_description)
+                            )
     async_add_entities(entities)
 
 
