@@ -132,6 +132,93 @@ Response:
 }
 ```
 
+```json
+{
+    "appliances": [
+        {
+            "applianceId": "<appliance uuid>",
+            "applianceOnline": "True",
+            "applianceConnectionStatus": "Connected",
+            "applianceType": "HeatPump",
+            "pairingStatus": "Paired",
+            "houseName": "Home",
+            "errorStatus": "Running",
+            "activeThermalMode": "Cooling",
+            "operatingMode": "AutomaticHeating",
+            "outdoorTemperatureInformation": {
+                "outdoorTemperatureSource": "Wired",
+                "internetOutdoorTemperature": "None",
+                "applianceOutdoorTemperature": 24.5,
+                "utilizeOutdoorTemperature": "None",
+                "internetOutdoorTemperatureExpected": "False",
+                "isDayTime": "True",
+                "weatherCode": "Sunny",
+                "cloudOutdoorTemperature": 22,
+                "cloudOutdoorTemperatureStatus": "Ok"
+            },
+            "currentTimestamp": "None",
+            "holidaySchedule": {
+                "startTime": "0001-01-01T00: 00: 00Z",
+                "endTime": "0001-01-01T00: 00: 00Z",
+                "active": "False"
+            },
+            "autoFillingMode": "NotAvailable",
+            "autoFilling": {
+                "mode": "NotAvailable",
+                "status": "NotAvailable"
+            },
+            "waterPressure": 1.4,
+            "waterPressureOK": "True",
+            "capabilityEnergyConsumption": "True",
+            "capabilityCooling": "False",
+            "capabilityPreHeat": "True",
+            "capabilityMultiSchedule": "True",
+            "capabilityPowerSettings": "False",
+            "capabilityOutdoorTemperature": "True",
+            "capabilityUtilizeOutdoorTemperature": "False",
+            "capabilityInternetOutdoorTemperatureExpected": "False",
+            "hasOverwrittenActivityNames": "False",
+            "gasCalorificValue": 8.7917,
+            "isActive": "True",
+            "timeZone": "None",
+            "hotWaterZones": [],
+            "climateZones": [
+                {
+                    "climateZoneId": "<climate zone uuid>",
+                    "applianceId": "<appliance uuid>",
+                    "name": "Woonkamer",
+                    "zoneIcon": 3,
+                    "zoneType": "CH",
+                    "activeComfortDemand": "ProducingCold",
+                    "zoneMode": "Manual",
+                    "controlStrategy": "Automatic",
+                    "firePlaceModeActive": "False",
+                    "capabilityFirePlaceMode": "True",
+                    "roomTemperature": 23.5,
+                    "setPoint": 21.0,
+                    "nextSetpoint": 30.0,
+                    "nextSwitchTime": "2025-06-21T22: 00: 00Z",
+                    "setPointMin": 5.0,
+                    "setPointMax": 30.0,
+                    "currentScheduleSetPoint": 22.0,
+                    "activeHeatingClimateTimeProgramNumber": 1,
+                    "capabilityCooling": "False",
+                    "capabilityTemporaryOverrideEndTime": "True",
+                    "preHeat": {
+                        "enabled": "False",
+                        "active": "False"
+                    },
+                    "temporaryOverride": {
+                        "endTime": "0001-01-01T00: 00: 00Z"
+                    }
+                }
+            ],
+            "solarThermals": []
+        }
+    ]
+}
+```
+
 ## POST `/climate-zones/{climate_zone_id}/modes/manual`
 Set the climate zone to manual mode.
 

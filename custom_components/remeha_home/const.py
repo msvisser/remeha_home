@@ -129,7 +129,8 @@ CLIMATE_ZONE_BINARY_SENSOR_TYPES = [
             entity_registry_enabled_default=False,
             device_class=BinarySensorDeviceClass.HEAT,
         ),
-        lambda value: value in ["ProducingHeat", "RequestingHeat"],
+        lambda value: value
+        in ["ProducingHeat", "RequestingHeat", "ProducingCold", "RequestingCold"],
     )
 ]
 
