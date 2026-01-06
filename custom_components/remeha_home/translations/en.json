@@ -34,6 +34,21 @@
                     }
                 }
             }
+        },
+        "water_heater": {
+            "remeha_home_dhw": {
+                "state": {
+                    "heat_pump": "Schedule",
+                    "performance": "Comfort",
+                    "eco": "Frost protection",
+                    "high_demand": "Boost"
+                },
+                "state_attributes": {
+                    "current_temperature": {
+                        "name": "Current temperature"
+                    }
+                }
+            }
         }
     }
 }

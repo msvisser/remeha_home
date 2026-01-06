@@ -16,6 +16,7 @@ from homeassistant.helpers.config_entry_oauth2_flow import (
     OAuth2Session,
 )
 from homeassistant.exceptions import ConfigEntryAuthFailed
+from aiohttp.client_exceptions import ClientResponseError
 
 from .const import DOMAIN
 
@@ -151,6 +152,69 @@ class RemehaHomeAPI:
         )
         response.raise_for_status()
         return await response.json()
+
+    async def async_set_dhw_comfort_setpoint(
+        self, hot_water_zone_id: str, setpoint: float
+    ):
+        """Set the comfort (continuous) target temperature for a DHW zone."""
+        response = await self._async_api_request(
+            "POST",
+            f"/hot-water-zones/{hot_water_zone_id}/comfort-setpoint",
+            json={"comfortSetpoint": setpoint},
+        )
+        response.raise_for_status()
+
+    async def async_set_dhw_reduced_setpoint(
+        self, hot_water_zone_id: str, setpoint: float
+    ):
+        """Set the eco/reduced target temperature for a DHW zone."""
+        response = await self._async_api_request(
+            "POST",
+            f"/hot-water-zones/{hot_water_zone_id}/reduced-setpoint",
+            json={"reducedSetpoint": setpoint},
+        )
+        response.raise_for_status()
+
+    async def async_set_dhw_mode_eco(self, hot_water_zone_id: str):
+        """Switch the DHW zone to eco (anti-frost) mode."""
+        response = await self._async_api_request(
+            "POST",
+            f"/hot-water-zones/{hot_water_zone_id}/modes/anti-frost",
+        )
+        response.raise_for_status()
+
+    async def async_set_dhw_mode_schedule(self, hot_water_zone_id: str):
+        """Switch the DHW zone to schedule mode."""
+        response = await self._async_api_request(
+            "POST",
+            f"/hot-water-zones/{hot_water_zone_id}/modes/schedule",
+        )
+        response.raise_for_status()
+
+    async def async_set_dhw_mode_comfort(self, hot_water_zone_id: str):
+        """Switch the DHW zone to continuous comfort mode."""
+        response = await self._async_api_request(
+            "POST",
+            f"/hot-water-zones/{hot_water_zone_id}/modes/continuous-comfort",
+        )
+        response.raise_for_status()
+
+    async def async_set_hot_water_boost(
+        self,
+        hot_water_zone_id: str,
+        enable: bool,
+        duration: int | None = None,
+    ):
+        """Enable or disable hot water boost for the zone."""
+        payload = {"boostMode": enable}
+        if enable and duration is not None:
+            payload["boostDuration"] = duration
+        response = await self._async_api_request(
+            "POST",
+            f"/hot-water-zones/{hot_water_zone_id}/modes/boost",
+            json=payload,
+        )
+        response.raise_for_status()
 
 
 class RemehaHomeAuthFailed(Exception):

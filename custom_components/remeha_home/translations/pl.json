@@ -1,0 +1,54 @@
+{
+    "config": {
+        "abort": {
+            "failed_to_authenticate": "Nie udało się uwierzytelnić"
+        },
+        "error": {
+            "failed_to_authenticate": "Nieprawidłowy adres e-mail lub hasło"
+        },
+        "step": {
+            "auth": {
+                "description": "Skonfiguruj integrację Remeha Home przy użyciu swoich danych logowania do Remeha Home.",
+                "data": {
+                    "email": "Adres e-mail",
+                    "password": "Hasło"
+                }
+            },
+            "reauth_confirm": {
+                "description": "Nie udało się odświeżyć tokenu dostępu Remeha Home. Zaloguj się ponownie przy użyciu danych Remeha Home, aby kontynuować korzystanie z integracji."
+            }
+        }
+    },
+    "entity": {
+        "climate": {
+            "remeha_home": {
+                "state_attributes": {
+                    "preset_mode": {
+                        "state": {
+                            "clock_program_1": "Harmonogram 1",
+                            "clock_program_2": "Harmonogram 2",
+                            "clock_program_3": "Harmonogram 3",
+                            "anti_frost": "Ochrona przed mrozem",
+                            "manual": "Ręczny"
+                        }
+                    }
+                }
+            }
+        },
+        "water_heater": {
+            "remeha_home_dhw": {
+                "state": {
+                    "heat_pump": "Harmonogram",
+                    "performance": "Komfort",
+                    "eco": "Antyzamarzanie",
+                    "high_demand": "Boost"
+                },
+                "state_attributes": {
+                    "current_temperature": {
+                        "name": "Aktualna temperatura"
+                    }
+                }
+            }
+        }
+    }
+}

@@ -13,6 +13,7 @@ from homeassistant.exceptions import ConfigEntryAuthFailed
 
 from .api import RemehaHomeAPI
 from .const import DOMAIN
+from .util import detect_dhw_setpoint_activity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -34,6 +35,7 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
         self.technical_info = {}
         self.appliance_consumption_data = {}
         self.appliance_last_consumption_data_update = {}
+        self.dhw_activity_cache = {}
 
     async def _async_update_data(self):
         """Fetch data from API endpoint.
@@ -178,6 +180,10 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
 
             for hot_water_zone in appliance["hotWaterZones"]:
                 hot_water_zone_id = hot_water_zone["hotWaterZoneId"]
+                hot_water_zone["dhwCurrentActivity"] = self._derive_dhw_activity(
+                    hot_water_zone
+                )
+
                 self.items[hot_water_zone_id] = hot_water_zone
                 self.device_info[hot_water_zone_id] = DeviceInfo(
                     identifiers={(DOMAIN, hot_water_zone_id)},
@@ -196,3 +202,26 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
     def get_device_info(self, item_id: str):
         """Return device info for the item with the specified id."""
         return self.device_info.get(item_id)
+
+    def _derive_dhw_activity(self, zone: dict) -> str | None:
+        """Derive a human-friendly DHW activity label."""
+        mode = zone.get("dhwZoneMode")
+        if mode in ("ContinuousComfort", "Boost"):
+            activity = "Comfort"
+            self.dhw_activity_cache[zone.get("hotWaterZoneId")] = activity
+            return activity
+        if mode == "Scheduling":
+            activity = detect_dhw_setpoint_activity(
+                zone.get("targetSetpoint"),
+                zone.get("comfortSetPoint"),
+                zone.get("reducedSetpoint"),
+            )
+            if activity is not None:
+                self.dhw_activity_cache[zone.get("hotWaterZoneId")] = activity
+                return activity
+            return self.dhw_activity_cache.get(zone.get("hotWaterZoneId"))
+        if mode == "Off":
+            activity = "Anti-Frost"
+            self.dhw_activity_cache[zone.get("hotWaterZoneId")] = activity
+            return activity
+        return None

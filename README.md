@@ -21,8 +21,11 @@ You can simply log in using the credentials that you would use in the respective
     - The time at which the next schedule setpoint gets activated
     - The current schedule setpoint
     - Switch to control fireplace mode
-- Each hot water zone exposes the following sensors:
-    - The water temperature
+- Each hot water zone exposes:
+    - The water temperature and status
+    - Water heater control with modes (Schedule, Comfort, Eco) and target temperature
+    - Setpoint numbers for Comfort and Eco temperatures
+    - A switch to trigger boost (if supported by the appliance)
 - Each appliance (CV-ketel) exposes the following sensors:
     - The water pressure
 

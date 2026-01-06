@@ -30,6 +30,21 @@
                     }
                 }
             }
+        },
+        "water_heater": {
+            "remeha_home_dhw": {
+                "state": {
+                    "heat_pump": "Schema",
+                    "performance": "Comfort",
+                    "eco": "Vorstbeveiliging",
+                    "high_demand": "Boost"
+                },
+                "state_attributes": {
+                    "current_temperature": {
+                        "name": "Huidige temperatuur"
+                    }
+                }
+            }
         }
     }
 }
