@@ -16,6 +16,7 @@ from .coordinator import RemehaHomeUpdateCoordinator
 PLATFORMS: list[Platform] = [
     Platform.BINARY_SENSOR,
     Platform.CLIMATE,
+    Platform.NUMBER,
     Platform.SENSOR,
     Platform.SWITCH,
 ]

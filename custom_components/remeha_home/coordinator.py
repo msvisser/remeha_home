@@ -1,5 +1,7 @@
 """Coordinator for fetching the Remeha Home data."""
 
+from __future__ import annotations
+
 from datetime import datetime, timedelta
 import logging
 
@@ -34,6 +36,7 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
         self.technical_info = {}
         self.appliance_consumption_data = {}
         self.appliance_last_consumption_data_update = {}
+        self.heating_curve_data: dict[str, dict] = {}
 
     async def _async_update_data(self):
         """Fetch data from API endpoint.
@@ -166,6 +169,25 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
                     }
 
                 self.items[climate_zone_id] = climate_zone
+
+                # Fetch heating curve data once (re-fetched after writes)
+                if climate_zone_id not in self.heating_curve_data:
+                    try:
+                        self.heating_curve_data[climate_zone_id] = (
+                            await self.api.async_get_heating_curve(climate_zone_id)
+                        )
+                        _LOGGER.debug(
+                            "Requested heating curve data for climate zone %s: %s",
+                            climate_zone_id,
+                            self.heating_curve_data[climate_zone_id],
+                        )
+                    except ClientResponseError as err:
+                        _LOGGER.warning(
+                            "Failed to request heating curve data for climate zone %s: %s",
+                            climate_zone_id,
+                            err,
+                        )
+
                 self.device_info[climate_zone_id] = DeviceInfo(
                     identifiers={(DOMAIN, climate_zone_id)},
                     name=climate_zone["name"],
@@ -196,3 +218,7 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
     def get_device_info(self, item_id: str):
         """Return device info for the item with the specified id."""
         return self.device_info.get(item_id)
+
+    def get_heating_curve(self, climate_zone_id: str) -> dict | None:
+        """Return heating curve data for the specified climate zone."""
+        return self.heating_curve_data.get(climate_zone_id)

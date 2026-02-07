@@ -1,5 +1,7 @@
 """API for Remeha Home bound to Home Assistant OAuth."""
 
+from __future__ import annotations
+
 import base64
 import datetime
 import hashlib
@@ -121,6 +123,26 @@ class RemehaHomeAPI:
             "POST",
             f"/climate-zones/{climate_zone_id}/modes/fireplacemode",
             json={"fireplaceModeActive": enabled},
+        )
+        response.raise_for_status()
+
+    async def async_get_heating_curve(self, climate_zone_id: str) -> dict:
+        """Get the heating curve parameters for a climate zone."""
+        response = await self._async_api_request(
+            "GET",
+            f"/climate-zones/{climate_zone_id}/heating-curve",
+        )
+        response.raise_for_status()
+        return await response.json()
+
+    async def async_set_heating_curve(
+        self, climate_zone_id: str, slope: float, base_setpoint: float
+    ) -> None:
+        """Set the heating curve for a climate zone."""
+        response = await self._async_api_request(
+            "POST",
+            f"/climate-zones/{climate_zone_id}/heating-curve",
+            json={"slope": slope, "baseSetpoint": base_setpoint},
         )
         response.raise_for_status()
 
