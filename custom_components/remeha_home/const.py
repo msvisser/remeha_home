@@ -88,6 +88,13 @@ APPLIANCE_SENSOR_TYPES = [
 
 CLIMATE_ZONE_SENSOR_TYPES = [
     SensorEntityDescription(
+        key="roomTemperature",
+        name="Room Temperature",
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    SensorEntityDescription(
         key="nextSetpoint",
         name="Next Setpoint",
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
