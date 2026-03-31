@@ -55,6 +55,21 @@ PRESET_MODE_TO_PRESET_INDEX = {
 }
 
 
+def map_remeha_status_to_hvac_action(status: str | None) -> HVACAction | None:
+    """Map the raw comfort demand status to a Home Assistant HVAC action."""
+    if status is None:
+        return None
+
+    if action := REMEHA_STATUS_TO_HVAC_ACTION.get(status):
+        return action
+
+    if "Heat" in status:
+        return HVACAction.HEATING
+
+    _LOGGER.debug("Unknown comfort demand status received: %s", status)
+    return None
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
@@ -152,8 +167,7 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
         if self.hvac_mode == HVACMode.OFF:
             return HVACAction.OFF
 
-        action = self._data["activeComfortDemand"]
-        return REMEHA_STATUS_TO_HVAC_ACTION.get(action)
+        return map_remeha_status_to_hvac_action(self._data.get("activeComfortDemand"))
 
     @property
     def preset_mode(self) -> str | None:

@@ -22,6 +22,10 @@ APPLIANCE_SENSOR_TYPES = [
         state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
+        key="activeThermalMode",
+        name="Thermal Mode",
+    ),
+    SensorEntityDescription(
         key="outdoorTemperatureInformation.applianceOutdoorTemperature",
         name="Outdoor Temperature",
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
@@ -87,6 +91,10 @@ APPLIANCE_SENSOR_TYPES = [
 ]
 
 CLIMATE_ZONE_SENSOR_TYPES = [
+    SensorEntityDescription(
+        key="activeComfortDemand",
+        name="Status",
+    ),
     SensorEntityDescription(
         key="nextSetpoint",
         name="Next Setpoint",
