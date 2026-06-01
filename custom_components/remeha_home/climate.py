@@ -39,6 +39,8 @@ HVAC_MODE_TO_REMEHA_MODE = {
 REMEHA_STATUS_TO_HVAC_ACTION = {
     "ProducingHeat": HVACAction.HEATING,
     "RequestingHeat": HVACAction.HEATING,
+    "ProducingCold": HVACAction.COOLING,
+    "RequestingCold": HVACAction.COOLING,
     "Idle": HVACAction.IDLE,
 }
 
