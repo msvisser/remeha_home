@@ -152,6 +152,22 @@ class RemehaHomeAPI:
         response.raise_for_status()
         return await response.json()
 
+    async def async_activate_dhw_boost(self, hot_water_zone_id: str):
+        """Activate DHW boost mode for a hot water zone."""
+        response = await self._async_api_request(
+            "POST",
+            f"/hot-water-zones/{hot_water_zone_id}/modes/boost",
+        )
+        response.raise_for_status()
+
+    async def async_deactivate_dhw_boost(self, hot_water_zone_id: str):
+        """Deactivate DHW boost mode (return to schedule)."""
+        response = await self._async_api_request(
+            "POST",
+            f"/hot-water-zones/{hot_water_zone_id}/modes/schedule",
+        )
+        response.raise_for_status()
+
 
 class RemehaHomeAuthFailed(Exception):
     """Error to indicate that authentication failed."""

@@ -18,6 +18,7 @@ PLATFORMS: list[Platform] = [
     Platform.CLIMATE,
     Platform.SENSOR,
     Platform.SWITCH,
+    Platform.BUTTON,
 ]
 
 
@@ -27,7 +28,7 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
 
     RemehaHomeLoginFlowHandler.async_register_implementation(
         hass,
-        RemehaHomeOAuth2Implementation(async_get_clientsession(hass)),
+        RemehaHomeOAuth2Implementation(async_get_clientsession hass)),
     )
 
     return True
