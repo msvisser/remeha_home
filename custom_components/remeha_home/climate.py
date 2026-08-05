@@ -33,12 +33,15 @@ REMEHA_MODE_TO_HVAC_MODE = {
 HVAC_MODE_TO_REMEHA_MODE = {
     HVACMode.AUTO: "Scheduling",
     HVACMode.HEAT: "Manual",
+    HVACMode.COOL: "Manual",
     HVACMode.OFF: "FrostProtection",
 }
 
 REMEHA_STATUS_TO_HVAC_ACTION = {
     "ProducingHeat": HVACAction.HEATING,
     "RequestingHeat": HVACAction.HEATING,
+    "ProducingCold": HVACAction.COOLING,
+    "RequestingCold": HVACAction.COOLING,
     "Idle": HVACAction.IDLE,
 }
 
@@ -139,12 +142,15 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
     def hvac_mode(self) -> HVACMode | str | None:
         """Return hvac target hvac state."""
         mode = self._data["zoneMode"]
-        return REMEHA_MODE_TO_HVAC_MODE.get(mode)
+        hvac_mode = REMEHA_MODE_TO_HVAC_MODE.get(mode)
+        if hvac_mode == HVACMode.HEAT and self._data.get("activeThermalMode") == "Cooling":
+            return HVACMode.COOL
+        return hvac_mode
 
     @property
     def hvac_modes(self) -> list[HVACMode] | list[str]:
         """Return the list of available operation modes."""
-        return [HVACMode.OFF, HVACMode.HEAT, HVACMode.AUTO]
+        return [HVACMode.OFF, HVACMode.HEAT, HVACMode.COOL, HVACMode.AUTO]
 
     @property
     def hvac_action(self) -> HVACAction | str | None:
@@ -160,7 +166,7 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
         """Return the preset mode."""
         if self.hvac_mode == HVACMode.OFF:
             return "anti_frost"
-        if self.hvac_mode == HVACMode.HEAT:
+        if self.hvac_mode in (HVACMode.HEAT, HVACMode.COOL):
             return "manual"
         return PRESET_INDEX_TO_PRESET_MODE[
             self._data["activeHeatingClimateTimeProgramNumber"]
@@ -179,7 +185,7 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
                 await self.api.async_set_temporary_override(
                     self.climate_zone_id, temperature
                 )
-            elif self.hvac_mode == HVACMode.HEAT:
+            elif self.hvac_mode in (HVACMode.HEAT, HVACMode.COOL):
                 await self.api.async_set_manual(self.climate_zone_id, temperature)
             elif self.hvac_mode == HVACMode.OFF:
                 return
@@ -199,7 +205,7 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
                 self.climate_zone_id,
                 self._data["activeHeatingClimateTimeProgramNumber"],
             )
-        elif hvac_mode == HVACMode.HEAT:
+        elif hvac_mode in (HVACMode.HEAT, HVACMode.COOL):
             await self.api.async_set_manual(
                 self.climate_zone_id, self._data["setPoint"]
             )

@@ -140,6 +140,7 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
             )
 
             for climate_zone in appliance["climateZones"]:
+                climate_zone["activeThermalMode"] = appliance.get("activeThermalMode", "Heating")
                 climate_zone_id = climate_zone["climateZoneId"]
                 # This assumes that all climate zones for an appliance share the same gateway
                 gateways = self.technical_info[appliance_id][
