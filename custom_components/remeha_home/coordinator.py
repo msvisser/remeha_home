@@ -6,7 +6,9 @@ import logging
 import asyncio
 from aiohttp.client_exceptions import ClientResponseError
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.exceptions import ConfigEntryAuthFailed
@@ -16,15 +18,26 @@ from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
+# Home Assistant 2026.8 added `via_device_id` to DeviceInfo and deprecated
+# `via_device` (removed in 2027.8). Use the new key where it exists, so older
+# Home Assistant versions keep working.
+_HAS_VIA_DEVICE_ID = "via_device_id" in DeviceInfo.__annotations__
+
 
 class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
     """Remeha Home update coordinator."""
 
-    def __init__(self, hass: HomeAssistant, api: RemehaHomeAPI) -> None:
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        api: RemehaHomeAPI,
+        config_entry: ConfigEntry | None = None,
+    ) -> None:
         """Initialize Remeha Home update coordinator."""
         super().__init__(
             hass,
             _LOGGER,
+            config_entry=config_entry,
             name=DOMAIN,
             update_interval=timedelta(seconds=60),
         )
@@ -139,6 +152,16 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
                 model=self.technical_info[appliance_id]["applianceName"],
             )
 
+            # The climate and hot water zones are linked to the appliance device.
+            if _HAS_VIA_DEVICE_ID and self.config_entry is not None:
+                appliance_device = dr.async_get(self.hass).async_get_or_create(
+                    config_entry_id=self.config_entry.entry_id,
+                    **self.device_info[appliance_id],
+                )
+                via = {"via_device_id": appliance_device.id}
+            else:
+                via = {"via_device": (DOMAIN, appliance_id)}
+
             for climate_zone in appliance["climateZones"]:
                 climate_zone_id = climate_zone["climateZoneId"]
                 # This assumes that all climate zones for an appliance share the same gateway
@@ -173,7 +196,7 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
                     model=gateway_info["name"],
                     hw_version=gateway_info["hardwareVersion"],
                     sw_version=gateway_info["softwareVersion"],
-                    via_device=(DOMAIN, appliance_id),
+                    **via,
                 )
 
             for hot_water_zone in appliance["hotWaterZones"]:
@@ -184,7 +207,7 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
                     name=hot_water_zone["name"],
                     manufacturer="Remeha",
                     model="Hot Water Zone",
-                    via_device=(DOMAIN, appliance_id),
+                    **via,
                 )
 
         return data
