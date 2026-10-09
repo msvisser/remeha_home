@@ -23,6 +23,7 @@ from .const import (
     HOT_WATER_ZONE_BINARY_SENSOR_TYPES,
 )
 from .coordinator import RemehaHomeUpdateCoordinator
+from .util import remeha_time
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -122,10 +123,8 @@ class RemehaHomeBinarySensor(CoordinatorEntity, BinarySensorEntity):
         schedule = (self._data or {}).get("holidaySchedule") or {}
 
         def _time(value):
-            # The API reports an unset time as 0001-01-01T00:00:00Z
-            if not value or str(value).startswith("0001-"):
-                return None
-            return value
+            parsed = remeha_time(value)
+            return parsed.isoformat() if parsed else None
 
         return {
             "start_time": _time(schedule.get("startTime")),

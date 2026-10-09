@@ -16,7 +16,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-import homeassistant.util.dt as dt_util
 
 from .const import (
     APPLIANCE_SENSOR_TYPES,
@@ -25,6 +24,7 @@ from .const import (
     HOT_WATER_ZONE_SENSOR_TYPES,
 )
 from .coordinator import RemehaHomeUpdateCoordinator
+from .util import remeha_time
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -127,9 +127,7 @@ class RemehaHomeSensor(CoordinatorEntity, SensorEntity):
         value = data
 
         if self.entity_description.device_class == SensorDeviceClass.TIMESTAMP:
-            return dt_util.parse_datetime(value).replace(
-                tzinfo=dt_util.DEFAULT_TIME_ZONE
-            )
+            return remeha_time(value)
 
         return value
 

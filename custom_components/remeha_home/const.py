@@ -119,6 +119,16 @@ CLIMATE_ZONE_SENSOR_TYPES = [
         device_class=SensorDeviceClass.TIMESTAMP,
     ),
     SensorEntityDescription(
+        key="zoneMode",
+        name="Zone Mode",
+        icon="mdi:thermostat-cog",
+    ),
+    SensorEntityDescription(
+        key="temporaryOverride.endTime",
+        name="Override End",
+        device_class=SensorDeviceClass.TIMESTAMP,
+    ),
+    SensorEntityDescription(
         key="currentScheduleSetPoint",
         name="Current Schedule Setpoint",
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
@@ -138,6 +148,16 @@ HOT_WATER_ZONE_SENSOR_TYPES = [
         key="dhwStatus",
         name="Status",
         entity_registry_enabled_default=False,
+    ),
+    SensorEntityDescription(
+        key="nextSwitchActivity",
+        name="Next Activity",
+        icon="mdi:calendar-clock",
+    ),
+    SensorEntityDescription(
+        key="activeDwhTimeProgramNumber",
+        name="Time Program",
+        icon="mdi:calendar-week",
     ),
 ]
 
@@ -173,6 +193,14 @@ APPLIANCE_BINARY_SENSOR_TYPES = [
 CLIMATE_ZONE_BINARY_SENSOR_TYPES = [
     (
         BinarySensorEntityDescription(
+            key="preHeat.active",
+            name="Pre-heat",
+            icon="mdi:clock-start",
+        ),
+        lambda value: bool(value),
+    ),
+    (
+        BinarySensorEntityDescription(
             key="activeComfortDemand",
             name="Status",
             entity_registry_enabled_default=False,
@@ -183,6 +211,14 @@ CLIMATE_ZONE_BINARY_SENSOR_TYPES = [
 ]
 
 HOT_WATER_ZONE_BINARY_SENSOR_TYPES = [
+    (
+        BinarySensorEntityDescription(
+            key="optimizationEnabled",
+            name="Optimization",
+            entity_category=EntityCategory.DIAGNOSTIC,
+        ),
+        lambda value: bool(value),
+    ),
     (
         BinarySensorEntityDescription(
             key="dhwStatus",
