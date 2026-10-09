@@ -9,7 +9,12 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntityDescription,
     BinarySensorDeviceClass,
 )
-from homeassistant.const import UnitOfEnergy, UnitOfTemperature, UnitOfPressure
+from homeassistant.const import (
+    EntityCategory,
+    UnitOfEnergy,
+    UnitOfTemperature,
+    UnitOfPressure,
+)
 
 DOMAIN = "remeha_home"
 
@@ -20,6 +25,21 @@ APPLIANCE_SENSOR_TYPES = [
         native_unit_of_measurement=UnitOfPressure.BAR,
         device_class=SensorDeviceClass.PRESSURE,
         state_class=SensorStateClass.MEASUREMENT,
+    ),
+    SensorEntityDescription(
+        key="errorStatus",
+        name="Error Status",
+        icon="mdi:alert-circle-outline",
+    ),
+    SensorEntityDescription(
+        key="operatingMode",
+        name="Operating Mode",
+        icon="mdi:cog-outline",
+    ),
+    SensorEntityDescription(
+        key="activeThermalMode",
+        name="Thermal Mode",
+        icon="mdi:heat-wave",
     ),
     SensorEntityDescription(
         key="outdoorTemperatureInformation.applianceOutdoorTemperature",
@@ -118,6 +138,35 @@ HOT_WATER_ZONE_SENSOR_TYPES = [
         key="dhwStatus",
         name="Status",
         entity_registry_enabled_default=False,
+    ),
+]
+
+APPLIANCE_BINARY_SENSOR_TYPES = [
+    (
+        BinarySensorEntityDescription(
+            key="applianceOnline",
+            name="Online",
+            device_class=BinarySensorDeviceClass.CONNECTIVITY,
+            entity_category=EntityCategory.DIAGNOSTIC,
+        ),
+        lambda value: bool(value),
+    ),
+    (
+        BinarySensorEntityDescription(
+            key="waterPressureOK",
+            name="Water Pressure",
+            device_class=BinarySensorDeviceClass.PROBLEM,
+        ),
+        # The API reports whether the pressure is OK; a problem sensor is on when it is not
+        lambda value: not value,
+    ),
+    (
+        BinarySensorEntityDescription(
+            key="holidaySchedule.active",
+            name="Holiday Mode",
+            icon="mdi:bag-suitcase",
+        ),
+        lambda value: bool(value),
     ),
 ]
 

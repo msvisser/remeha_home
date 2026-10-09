@@ -51,6 +51,13 @@ async def async_setup_entry(
         for hot_water_zone in appliance["hotWaterZones"]:
             hot_water_zone_id = hot_water_zone["hotWaterZoneId"]
             for entity_description in HOT_WATER_ZONE_SENSOR_TYPES:
+                # Combi appliances report no hot water temperature (always null);
+                # don't create a sensor that can only ever read unknown
+                if (
+                    entity_description.key == "dhwTemperature"
+                    and hot_water_zone.get("dhwTemperature") is None
+                ):
+                    continue
                 entities.append(
                     RemehaHomeSensor(coordinator, hot_water_zone_id, entity_description)
                 )

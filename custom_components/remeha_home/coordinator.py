@@ -34,6 +34,8 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
         self.technical_info = {}
         self.appliance_consumption_data = {}
         self.appliance_last_consumption_data_update = {}
+        # Raw consumption responses, for diagnostics
+        self.last_consumption_response = {}
 
     async def _async_update_data(self):
         """Fetch data from API endpoint.
@@ -91,13 +93,15 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
                         appliance_id,
                         consumption_data,
                     )
+                    self.last_consumption_response[appliance_id] = consumption_data
 
                     if len(consumption_data["data"]) > 0:
                         self.appliance_consumption_data[appliance_id] = (
                             consumption_data["data"][0]
                         )
                     else:
-                        _LOGGER.warning(
+                        # Normal shortly after midnight, before the day has any data
+                        _LOGGER.debug(
                             "No consumption data found for appliance %s", appliance_id
                         )
                         self.appliance_consumption_data[appliance_id] = {
