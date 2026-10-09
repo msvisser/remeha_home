@@ -20,6 +20,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .api import RemehaHomeAPI
 from .const import DOMAIN
 from .coordinator import RemehaHomeUpdateCoordinator
+from .util import remeha_time
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -112,6 +113,15 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
     def device_info(self) -> DeviceInfo:
         """Return device info for this device."""
         return self.coordinator.get_device_info(self.climate_zone_id)
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return the Remeha zone mode and the end of a temporary override."""
+        end = remeha_time((self._data.get("temporaryOverride") or {}).get("endTime"))
+        return {
+            "zone_mode": self._data.get("zoneMode"),
+            "override_end_time": end.isoformat() if end else None,
+        }
 
     @property
     def current_temperature(self) -> float | None:

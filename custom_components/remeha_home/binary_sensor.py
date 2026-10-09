@@ -3,6 +3,7 @@
 from __future__ import annotations
 import logging
 from collections.abc import Callable
+from typing import Any
 
 
 from homeassistant.components.binary_sensor import (
@@ -17,10 +18,12 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
     DOMAIN,
+    APPLIANCE_BINARY_SENSOR_TYPES,
     CLIMATE_ZONE_BINARY_SENSOR_TYPES,
     HOT_WATER_ZONE_BINARY_SENSOR_TYPES,
 )
 from .coordinator import RemehaHomeUpdateCoordinator
+from .util import remeha_time
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -33,6 +36,17 @@ async def async_setup_entry(
 
     entities = []
     for appliance in coordinator.data["appliances"]:
+        appliance_id = appliance["applianceId"]
+        for entity_description, transform_func in APPLIANCE_BINARY_SENSOR_TYPES:
+            entities.append(
+                RemehaHomeBinarySensor(
+                    coordinator,
+                    appliance_id,
+                    entity_description,
+                    transform_func,
+                )
+            )
+
         for climate_zone in appliance["climateZones"]:
             climate_zone_id = climate_zone["climateZoneId"]
             for (
@@ -95,9 +109,27 @@ class RemehaHomeBinarySensor(CoordinatorEntity, BinarySensorEntity):
         """Return the measurement value for this sensor."""
         data = self._data
         for part in self.entity_description.key.split("."):
+            if not isinstance(data, dict) or part not in data:
+                return None
             data = data[part]
 
         return self.transform_func(data)
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        """Return the holiday period for the holiday mode sensor."""
+        if self.entity_description.key != "holidaySchedule.active":
+            return None
+        schedule = (self._data or {}).get("holidaySchedule") or {}
+
+        def _time(value):
+            parsed = remeha_time(value)
+            return parsed.isoformat() if parsed else None
+
+        return {
+            "start_time": _time(schedule.get("startTime")),
+            "end_time": _time(schedule.get("endTime")),
+        }
 
     @property
     def device_info(self) -> DeviceInfo:
