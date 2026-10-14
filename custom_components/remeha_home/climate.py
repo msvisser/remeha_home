@@ -5,6 +5,7 @@ from typing import Any
 import logging
 
 from homeassistant.components.climate import (
+    ATTR_HVAC_MODE,
     ClimateEntity,
     ClimateEntityFeature,
     HVACAction,
@@ -13,6 +14,7 @@ from homeassistant.components.climate import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_TEMPERATURE, PRECISION_HALVES, UnitOfTemperature
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -249,19 +251,43 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
         return list(PRESET_INDEX_TO_PRESET_MODE.values())
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
-        """Set new target temperature."""
-        if (temperature := kwargs.get(ATTR_TEMPERATURE)) is not None:
-            _LOGGER.debug("Setting temperature to %f", temperature)
-            if self.hvac_mode == HVACMode.AUTO:
-                await self.api.async_set_temporary_override(
-                    self.climate_zone_id, temperature
-                )
-            elif self.hvac_mode in (HVACMode.HEAT, HVACMode.HEAT_COOL):
-                await self.api.async_set_manual(self.climate_zone_id, temperature)
-            elif self.hvac_mode == HVACMode.OFF:
-                return
+        """Set new target temperature, optionally together with a new operation mode."""
+        temperature = kwargs.get(ATTR_TEMPERATURE)
+        requested_hvac_mode = kwargs.get(ATTR_HVAC_MODE)
 
-            await self.coordinator.async_request_refresh()
+        if temperature is None:
+            if requested_hvac_mode is not None:
+                await self.async_set_hvac_mode(requested_hvac_mode)
+            return
+
+        current_hvac_mode = self.hvac_mode
+        hvac_mode = requested_hvac_mode or current_hvac_mode
+        _LOGGER.debug("Setting temperature to %f in mode %s", temperature, hvac_mode)
+
+        if hvac_mode == HVACMode.OFF:
+            # The setpoint can't be stored while the zone is in frost protection,
+            # so fail loudly instead of silently dropping it
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="set_temperature_while_off",
+            )
+
+        if hvac_mode == HVACMode.AUTO:
+            if current_hvac_mode != HVACMode.AUTO:
+                await self.api.async_set_schedule(
+                    self.climate_zone_id,
+                    self._data["activeHeatingClimateTimeProgramNumber"],
+                )
+            await self.api.async_set_temporary_override(
+                self.climate_zone_id, temperature
+            )
+        elif hvac_mode in (HVACMode.HEAT, HVACMode.HEAT_COOL):
+            # Switches the zone to manual mode with the new setpoint in one request
+            await self.api.async_set_manual(self.climate_zone_id, temperature)
+        else:
+            raise NotImplementedError()
+
+        await self.coordinator.async_request_refresh()
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         """Set new operation mode."""

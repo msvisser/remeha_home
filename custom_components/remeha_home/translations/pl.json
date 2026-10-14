@@ -50,5 +50,10 @@
                 }
             }
         }
+    },
+    "exceptions": {
+        "set_temperature_while_off": {
+            "message": "Nie można ustawić temperatury, gdy strefa jest w trybie ochrony przed zamarzaniem. Najpierw zmień tryb lub podaj `hvac_mode` razem z temperaturą."
+        }
     }
 }

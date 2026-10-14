@@ -50,5 +50,10 @@
                 }
             }
         }
+    },
+    "exceptions": {
+        "set_temperature_while_off": {
+            "message": "Cannot set a temperature while the zone is in frost protection. Change the HVAC mode first, or pass `hvac_mode` together with the temperature."
+        }
     }
 }
