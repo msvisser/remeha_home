@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 import logging
 
 import asyncio
@@ -84,6 +84,9 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
         self.technical_info = {}
         self.appliance_consumption_data = {}
         self.appliance_last_consumption_data_update = {}
+        # Date of the last non-empty consumption data, to tell an empty response
+        # during the day apart from the start of a new day
+        self.appliance_consumption_data_date: dict[str, date] = {}
         self.dhw_activity_cache = {}
         self.heating_curve_data: dict[str, dict] = {}
         self.activities_data: dict[str, list] = {}
@@ -149,12 +152,21 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
                         consumption = self._process_consumption_data(
                             appliance, consumption_data["data"][0]
                         )
+                        self.appliance_consumption_data_date[appliance_id] = now.date()
+                    elif self.appliance_consumption_data_date.get(appliance_id) == now.date():
+                        # Empty response during the day: keep today's values, a drop to 0
+                        # would be seen as a reset and double count the day's consumption
+                        _LOGGER.debug(
+                            "No consumption data found for appliance %s, keeping today's values",
+                            appliance_id,
+                        )
+                        consumption = self.appliance_consumption_data[appliance_id]
                     else:
                         # Normal right after midnight, before the API has data for today
                         _LOGGER.debug(
                             "No consumption data found for appliance %s", appliance_id
                         )
-                        consumption = APPLIANCE_CONSUMPTION_DEFAULT_DATA
+                        consumption = dict(APPLIANCE_CONSUMPTION_DEFAULT_DATA)
 
                     self.appliance_consumption_data[appliance_id] = consumption
                     self.appliance_last_consumption_data_update[appliance_id] = now
@@ -180,7 +192,7 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
                     appliance_id
                 ]
             else:
-                appliance["consumptionData"] = APPLIANCE_CONSUMPTION_DEFAULT_DATA
+                appliance["consumptionData"] = dict(APPLIANCE_CONSUMPTION_DEFAULT_DATA)
 
             self.device_info[appliance_id] = DeviceInfo(
                 identifiers={(DOMAIN, appliance_id)},
