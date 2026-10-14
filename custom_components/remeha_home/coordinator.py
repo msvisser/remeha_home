@@ -146,50 +146,17 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
                     )
 
                     if len(consumption_data["data"]) > 0:
-                        if consumption_data["data"][0]["producerPerformanceStatistics"]["producers"]:
-                            for producer in consumption_data["data"][0]["producerPerformanceStatistics"]["producers"]:
-                                if producer["energyType"] == "NaturalGas":
-                                    """Recalculate energy values back to gas values when Gas device"""
-
-                                    producer["energyConsumptionCH"] = round(float(producer["energyConsumptionCH"]) / float(appliance["gasCalorificValue"]),2)
-                                    producer["energyConsumptionDHW"] = round(float(producer["energyConsumptionDHW"]) / float(appliance["gasCalorificValue"]),2)
-
-
-                        self.appliance_consumption_data[appliance_id] = (
-                            consumption_data["data"][0]
+                        consumption = self._process_consumption_data(
+                            appliance, consumption_data["data"][0]
                         )
                     else:
-                        _LOGGER.warning(
+                        # Normal right after midnight, before the API has data for today
+                        _LOGGER.debug(
                             "No consumption data found for appliance %s", appliance_id
                         )
-                        self.appliance_consumption_data[appliance_id] = (
-                            APPLIANCE_CONSUMPTION_DEFAULT_DATA
-                        )
+                        consumption = APPLIANCE_CONSUMPTION_DEFAULT_DATA
 
-                    if (
-                        "producerPerformanceStatistics"
-                        in self.appliance_consumption_data[appliance_id]
-                    ):
-                        for producer in self.appliance_consumption_data[appliance_id][
-                            "producerPerformanceStatistics"
-                        ]["producers"]:
-                            for producer_stat in PRODUCER_STATS:
-                                stat = f"{producer_stat}{producer["energyType"]}"
-                                value = producer.get(producer_stat, 0.0)
-                                if not isinstance(value, int | float):
-                                    value = 0.0
-
-                                self.appliance_consumption_data[appliance_id][stat] = (
-                                    self.appliance_consumption_data[appliance_id].get(
-                                        stat, 0.0
-                                    )
-                                    + value
-                                )
-
-                            self.appliance_consumption_data[appliance_id][
-                                f"seasonalEfficiency{producer["energyType"]}"
-                            ] = producer.get("seasonalEfficiency", 0.0)
-
+                    self.appliance_consumption_data[appliance_id] = consumption
                     self.appliance_last_consumption_data_update[appliance_id] = now
                 except ClientResponseError as err:
                     _LOGGER.warning(
@@ -197,6 +164,15 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
                         appliance_id,
                         err,
                     )
+                except Exception:
+                    # Consumption data is optional, so a problem with it must never
+                    # fail the whole update and make the climate entities unavailable.
+                    # Keep the previous data and retry at the next consumption interval.
+                    _LOGGER.exception(
+                        "Failed to update consumption data for appliance %s",
+                        appliance_id,
+                    )
+                    self.appliance_last_consumption_data_update[appliance_id] = now
 
             # Get the cached consumption data for the appliance or use default values
             if appliance_id in self.appliance_consumption_data:
@@ -303,7 +279,7 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
                 )
 
             producer_stats = appliance["consumptionData"].get("producerPerformanceStatistics")
-            if producer_stats and len(producer_stats["producers"]) > 1:
+            if producer_stats and len(producer_stats.get("producers") or []) > 1:
                 for producer in producer_stats["producers"]:
                     producer_id = "{0}_{1}".format(appliance_id, producer["instanceWithinDevice"])
                     self.items[producer_id] = producer
@@ -318,6 +294,40 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
                         via_device=(DOMAIN, appliance_id),
                     )
         return data
+
+    def _process_consumption_data(self, appliance: dict, consumption: dict) -> dict:
+        """Convert gas producer values and add totals per energy type."""
+        # Start from the defaults so the totals per energy type are 0.0 instead of
+        # missing when the API returns a bucket without producers, which it does
+        # right after midnight until the data for the new day is reported
+        consumption = {**APPLIANCE_CONSUMPTION_DEFAULT_DATA, **consumption}
+        producer_stats = consumption.get("producerPerformanceStatistics") or {}
+        producers = producer_stats.get("producers") or []
+
+        for producer in producers:
+            if producer.get("energyType") == "NaturalGas":
+                # Recalculate energy values back to gas values when Gas device
+                calorific_value = float(appliance["gasCalorificValue"])
+                for key in ("energyConsumptionCH", "energyConsumptionDHW"):
+                    producer[key] = round(
+                        float(producer.get(key) or 0.0) / calorific_value, 2
+                    )
+
+        for producer in producers:
+            energy_type = producer.get("energyType")
+            for producer_stat in PRODUCER_STATS:
+                stat = f"{producer_stat}{energy_type}"
+                value = producer.get(producer_stat, 0.0)
+                if not isinstance(value, int | float):
+                    value = 0.0
+
+                consumption[stat] = consumption.get(stat, 0.0) + value
+
+            consumption[f"seasonalEfficiency{energy_type}"] = producer.get(
+                "seasonalEfficiency", 0.0
+            )
+
+        return consumption
 
     def get_by_id(self, item_id: str):
         """Return item with the specified item id."""
