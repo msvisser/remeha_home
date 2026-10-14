@@ -198,18 +198,7 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
         """Return hvac target hvac state."""
         mode = self._data["zoneMode"]
         appliance_type = self._get_appliance_type()
-        hvac_mode = get_remeha_mode_to_hvac_mode(appliance_type).get(mode)
-
-        # Enhanced debugging for cooling functionality
-        _LOGGER.info(
-            "🔧 COOLING DEBUG - Zone %s: zoneMode=%s, appliance_type=%s, mapped_hvac_mode=%s",
-            self.climate_zone_id,
-            mode,
-            appliance_type,
-            hvac_mode,
-        )
-
-        return hvac_mode
+        return get_remeha_mode_to_hvac_mode(appliance_type).get(mode)
 
     @property
     def hvac_modes(self) -> list[HVACMode]:
@@ -296,22 +285,30 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
         # Temporarily override the coordinator state until the next poll
         appliance_type = self._get_appliance_type()
         hvac_mode_mapping = get_hvac_mode_to_remeha_mode(appliance_type)
-        self._data["zoneMode"] = hvac_mode_mapping.get(hvac_mode)
+        zone_data = self._data
+        previous_zone_mode = zone_data["zoneMode"]
+        zone_data["zoneMode"] = hvac_mode_mapping.get(hvac_mode)
         self.async_write_ha_state()
 
-        if hvac_mode == HVACMode.AUTO:
-            await self.api.async_set_schedule(
-                self.climate_zone_id,
-                self._data["activeHeatingClimateTimeProgramNumber"],
-            )
-        elif hvac_mode in (HVACMode.HEAT, HVACMode.HEAT_COOL):
-            await self.api.async_set_manual(
-                self.climate_zone_id, self._data["setPoint"]
-            )
-        elif hvac_mode == HVACMode.OFF:
-            await self.api.async_set_off(self.climate_zone_id)
-        else:
-            raise NotImplementedError()
+        try:
+            if hvac_mode == HVACMode.AUTO:
+                await self.api.async_set_schedule(
+                    self.climate_zone_id,
+                    zone_data["activeHeatingClimateTimeProgramNumber"],
+                )
+            elif hvac_mode in (HVACMode.HEAT, HVACMode.HEAT_COOL):
+                await self.api.async_set_manual(
+                    self.climate_zone_id, zone_data["setPoint"]
+                )
+            elif hvac_mode == HVACMode.OFF:
+                await self.api.async_set_off(self.climate_zone_id)
+            else:
+                raise NotImplementedError()
+        except Exception:
+            # Revert the temporary override, the zone did not change
+            zone_data["zoneMode"] = previous_zone_mode
+            self.async_write_ha_state()
+            raise
 
         await self.coordinator.async_request_refresh()
 
@@ -328,16 +325,27 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
 
         appliance_type = self._get_appliance_type()
         hvac_mode_mapping = get_hvac_mode_to_remeha_mode(appliance_type)
-        self._data["zoneMode"] = hvac_mode_mapping.get(HVACMode.AUTO)
-        self._data["activeHeatingClimateTimeProgramNumber"] = target_preset
+        zone_data = self._data
+        previous_zone_mode = zone_data["zoneMode"]
+        previous_preset = zone_data["activeHeatingClimateTimeProgramNumber"]
+        zone_data["zoneMode"] = hvac_mode_mapping.get(HVACMode.AUTO)
+        zone_data["activeHeatingClimateTimeProgramNumber"] = target_preset
         self.async_write_ha_state()
 
-        # Switch the selected heating time program
-        await self.api.async_activate_heating_time_program(
-            self.climate_zone_id, target_preset
-        )
-        # Automatically make sure the mode is set to schedule
-        if previous_hvac_mode != HVACMode.AUTO:
-            await self.api.async_set_schedule(self.climate_zone_id, target_preset)
+        try:
+            # Switch the selected heating time program
+            await self.api.async_activate_heating_time_program(
+                self.climate_zone_id, target_preset
+            )
+            # Automatically make sure the mode is set to schedule
+            if previous_hvac_mode != HVACMode.AUTO:
+                await self.api.async_set_schedule(self.climate_zone_id, target_preset)
+        except Exception:
+            # Revert the temporary override. If only the schedule request failed,
+            # the next poll picks up the program that was already activated.
+            zone_data["zoneMode"] = previous_zone_mode
+            zone_data["activeHeatingClimateTimeProgramNumber"] = previous_preset
+            self.async_write_ha_state()
+            raise
 
         await self.coordinator.async_request_refresh()
