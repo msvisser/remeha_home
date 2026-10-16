@@ -53,6 +53,9 @@
         },
         "boost_requires_schedule": {
             "message": "Boost kan alleen worden gestart als de warmwaterzone op Schema staat."
+        },
+        "eco_setpoint_requires_tank": {
+            "message": "De Eco-temperatuur kan alleen worden aangepast bij een warmwatertank. Een combiketel houdt in Eco geen water warm, dus er is geen temperatuur om in te stellen."
         }
     }
 }

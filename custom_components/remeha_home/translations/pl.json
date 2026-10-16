@@ -57,6 +57,9 @@
         },
         "boost_requires_schedule": {
             "message": "Boost można uruchomić tylko wtedy, gdy strefa ciepłej wody jest w trybie Harmonogram."
+        },
+        "eco_setpoint_requires_tank": {
+            "message": "Temperaturę Eko można zmienić tylko dla zasobnika ciepłej wody. Kocioł dwufunkcyjny nie utrzymuje ciepłej wody w trybie Eko, więc nie ma temperatury do ustawienia."
         }
     }
 }

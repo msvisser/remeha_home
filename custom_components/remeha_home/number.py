@@ -7,6 +7,7 @@ from homeassistant.components.number import NumberDeviceClass, NumberEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory, PRECISION_HALVES, UnitOfTemperature
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -14,6 +15,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .api import RemehaHomeAPI
 from .const import DOMAIN
 from .coordinator import RemehaHomeUpdateCoordinator
+from .util import supports_reduced_setpoint
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -42,17 +44,26 @@ async def async_setup_entry(
                     icon="mdi:water-thermometer",
                 )
             )
-            entities.append(
-                RemehaHomeDhwSetpointNumber(
-                    api,
-                    coordinator,
-                    hot_water_zone_id,
-                    setpoint_type="eco",
-                    name="Eco Temperature",
-                    key="reducedSetpoint",
-                    icon="mdi:water-thermometer-outline",
+            if supports_reduced_setpoint(hot_water_zone):
+                entities.append(
+                    RemehaHomeDhwSetpointNumber(
+                        api,
+                        coordinator,
+                        hot_water_zone_id,
+                        setpoint_type="eco",
+                        name="Eco Temperature",
+                        key="reducedSetpoint",
+                        icon="mdi:water-thermometer-outline",
+                    )
                 )
-            )
+            else:
+                # Remove the eco temperature that was created before for a combi boiler
+                entity_registry = er.async_get(hass)
+                unique_id = "_".join([DOMAIN, hot_water_zone_id, "reducedSetpoint"])
+                if entity_id := entity_registry.async_get_entity_id(
+                    "number", DOMAIN, unique_id
+                ):
+                    entity_registry.async_remove(entity_id)
 
         # Heating curve and activity temperature numbers
         for climate_zone in appliance["climateZones"]:

@@ -24,7 +24,7 @@ import homeassistant.util.dt as dt_util
 from .api import RemehaHomeAPI
 from .const import DOMAIN
 from .coordinator import RemehaHomeUpdateCoordinator
-from .util import detect_dhw_setpoint_activity
+from .util import detect_dhw_setpoint_activity, supports_reduced_setpoint
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -221,6 +221,11 @@ class RemehaHomeWaterHeater(CoordinatorEntity, WaterHeaterEntity):
                 self.hot_water_zone_id, temperature
             )
         else:
+            if not supports_reduced_setpoint(self._data):
+                raise ServiceValidationError(
+                    translation_domain=DOMAIN,
+                    translation_key="eco_setpoint_requires_tank",
+                )
             self._data["reducedSetpoint"] = temperature
             self._data["targetSetpoint"] = temperature
             await self.api.async_set_dhw_reduced_setpoint(

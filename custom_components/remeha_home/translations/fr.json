@@ -53,6 +53,9 @@
         },
         "boost_requires_schedule": {
             "message": "Le boost ne peut être lancé que lorsque la zone d'eau chaude est en mode Programme."
+        },
+        "eco_setpoint_requires_tank": {
+            "message": "La température Éco ne peut être modifiée que pour un ballon d'eau chaude. Une chaudière mixte ne maintient pas l'eau chaude en mode Éco, il n'y a donc pas de température à régler."
         }
     }
 }

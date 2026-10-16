@@ -57,6 +57,9 @@
         },
         "boost_requires_schedule": {
             "message": "Boost can only be started while the hot water zone is in Schedule mode."
+        },
+        "eco_setpoint_requires_tank": {
+            "message": "The Eco temperature can only be changed for a hot water tank. A combi boiler doesn't keep water warm in Eco, so there is no temperature to set."
         }
     }
 }

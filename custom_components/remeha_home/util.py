@@ -25,3 +25,12 @@ def detect_dhw_setpoint_activity(
         return "Eco"
 
     return None
+
+
+def supports_reduced_setpoint(hot_water_zone: dict) -> bool:
+    """Return whether the eco (reduced) setpoint of a hot water zone can be changed.
+
+    Remeha only accepts it for a zone with a tank. A combi boiler doesn't keep
+    water warm in eco mode, so it has no eco temperature to set.
+    """
+    return hot_water_zone.get("dhwType", "Tank") == "Tank"
