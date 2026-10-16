@@ -28,6 +28,13 @@ You can simply log in using the credentials that you would use in the respective
     - A switch to trigger boost (if supported by the appliance)
 - Each appliance (CV-ketel) exposes the following sensors:
     - The water pressure
+    - The energy consumed and delivered today for heating, hot water and cooling, for the appliance as a whole (disabled by default)
+- Each producer (heat source) of an appliance, such as the heat pump and the gas boiler of a hybrid system, is a separate device with:
+    - The energy consumed and delivered today for heating, hot water and cooling (gas boilers report the gas consumed, in m³)
+    - The seasonal efficiency (heat pumps only)
+
+    The energy values come from Remeha and are updated every 15 minutes. Remeha only reports them with a delay of about 2 hours, and right after midnight the values of the new day start at 0.
+    On hybrid setups where the existing gas boiler heats the hot water, such as the Remeha Elga Ace, Remeha does not report the gas used for hot water, so that sensor stays at 0.
 
 ## Installation
 

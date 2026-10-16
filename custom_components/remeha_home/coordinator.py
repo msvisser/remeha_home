@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import Counter
 from datetime import date, datetime, timedelta
 import logging
 
@@ -47,24 +48,18 @@ APPLIANCE_CONSUMPTION_DEFAULT_DATA = {
     "heatingEnergyDelivered": 0.0,
     "hotWaterEnergyDelivered": 0.0,
     "coolingEnergyDelivered": 0.0,
-    "energyConsumptionCHElectric": 0.0,
-    "energyConsumptionDHWElectric": 0.0,
-    "energyConsumptionCoolingElectric": 0.0,
-    "energyConsumptionTotalElectric": 0.0,
-    "energyProductionCHElectric": 0.0,
-    "energyProductionDHWElectric": 0.0,
-    "energyProductionCoolingElectric": 0.0,
-    "energyProductionTotalElectric": 0.0,
-    "energyConsumptionCHNaturalGas": 0.0,
-    "energyConsumptionDHWNaturalGas": 0.0,
-    "energyConsumptionCoolingNaturalGas": 0.0,
-    "energyConsumptionTotalNaturalGas": 0.0,
-    "energyProductionCHNaturalGas": 0.0,
-    "energyProductionDHWNaturalGas": 0.0,
-    "energyProductionCoolingNaturalGas": 0.0,
-    "energyProductionTotalNaturalGas": 0.0,
-    "seasonalEfficiencyElectric": 0.0,
 }
+
+
+def get_producers(consumption: dict) -> list[dict]:
+    """Return the producers (heat sources) in the consumption data of an appliance."""
+    producer_stats = consumption.get("producerPerformanceStatistics")
+    return (producer_stats or {}).get("producers") or []
+
+
+def get_producer_id(appliance_id: str, producer: dict) -> str:
+    """Return the item id of a producer."""
+    return f"{appliance_id}_{producer['instanceWithinDevice']}"
 
 
 class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
@@ -87,6 +82,7 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
         # Date of the last non-empty consumption data, to tell an empty response
         # during the day apart from the start of a new day
         self.appliance_consumption_data_date: dict[str, date] = {}
+        self.appliance_producer_ids: dict[str, set[str]] = {}
         self.dhw_activity_cache = {}
         self.heating_curve_data: dict[str, dict] = {}
         self.activities_data: dict[str, list] = {}
@@ -290,54 +286,64 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
                     via_device=(DOMAIN, appliance_id),
                 )
 
-            producer_stats = appliance["consumptionData"].get("producerPerformanceStatistics")
-            if producer_stats and len(producer_stats.get("producers") or []) > 1:
-                for producer in producer_stats["producers"]:
-                    producer_id = "{0}_{1}".format(appliance_id, producer["instanceWithinDevice"])
-                    self.items[producer_id] = producer
-                    producer_type = producer["producerType"]
-                    producer_label = PRODUCER_TYPE_NAMES.get(producer_type, producer_type)
-                    instance = producer["instanceWithinDevice"]
-                    self.device_info[producer_id] = DeviceInfo(
-                        identifiers={(DOMAIN, producer_id)},
-                        name=f"{producer_label} {instance}",
-                        manufacturer="Remeha",
-                        model=producer_type,
-                        via_device=(DOMAIN, appliance_id),
-                    )
+            self._update_producers(
+                appliance_id, get_producers(appliance["consumptionData"])
+            )
         return data
 
-    def _process_consumption_data(self, appliance: dict, consumption: dict) -> dict:
-        """Convert gas producer values and add totals per energy type."""
-        # Start from the defaults so the totals per energy type are 0.0 instead of
-        # missing when the API returns a bucket without producers, which it does
-        # right after midnight until the data for the new day is reported
-        consumption = {**APPLIANCE_CONSUMPTION_DEFAULT_DATA, **consumption}
-        producer_stats = consumption.get("producerPerformanceStatistics") or {}
-        producers = producer_stats.get("producers") or []
+    def _update_producers(self, appliance_id: str, producers: list[dict]) -> None:
+        """Register the producers (heat sources) of an appliance as devices."""
+        type_counts = Counter(producer.get("producerType") for producer in producers)
+        current_ids = set()
 
         for producer in producers:
+            producer_id = get_producer_id(appliance_id, producer)
+            current_ids.add(producer_id)
+            self.items[producer_id] = producer
+
+            producer_type = producer.get("producerType", "Producer")
+            producer_label = PRODUCER_TYPE_NAMES.get(producer_type, producer_type)
+            # Only number the producers when there are several of the same type
+            if type_counts[producer_type] > 1:
+                name = f"{producer_label} {producer['instanceWithinDevice']}"
+            else:
+                name = producer_label
+            self.device_info[producer_id] = DeviceInfo(
+                identifiers={(DOMAIN, producer_id)},
+                name=name,
+                manufacturer="Remeha",
+                model=producer_label,
+                via_device=(DOMAIN, appliance_id),
+            )
+
+        # Right after midnight the API doesn't list the producers until the data
+        # for the new day is reported. Their values for the new day are 0, not the
+        # values of yesterday. The seasonal efficiency is kept, it's a running value.
+        known_ids = self.appliance_producer_ids.setdefault(appliance_id, set())
+        for producer_id in known_ids - current_ids:
+            self.items[producer_id] = {
+                **self.items[producer_id],
+                **dict.fromkeys(PRODUCER_STATS, 0.0),
+            }
+        known_ids |= current_ids
+
+    def _process_consumption_data(self, appliance: dict, consumption: dict) -> dict:
+        """Prepare the consumption data of an appliance and its producers."""
+        # Start from the defaults so a missing appliance total is 0.0 instead of unknown
+        consumption = {**APPLIANCE_CONSUMPTION_DEFAULT_DATA, **consumption}
+
+        for producer in get_producers(consumption):
+            # The API reports null for energy a producer doesn't use or deliver, e.g.
+            # hot water for a heat pump when the boiler heats the water
+            for producer_stat in PRODUCER_STATS:
+                if not isinstance(producer.get(producer_stat), int | float):
+                    producer[producer_stat] = 0.0
+
             if producer.get("energyType") == "NaturalGas":
                 # Recalculate energy values back to gas values when Gas device
                 calorific_value = float(appliance["gasCalorificValue"])
                 for key in ("energyConsumptionCH", "energyConsumptionDHW"):
-                    producer[key] = round(
-                        float(producer.get(key) or 0.0) / calorific_value, 2
-                    )
-
-        for producer in producers:
-            energy_type = producer.get("energyType")
-            for producer_stat in PRODUCER_STATS:
-                stat = f"{producer_stat}{energy_type}"
-                value = producer.get(producer_stat, 0.0)
-                if not isinstance(value, int | float):
-                    value = 0.0
-
-                consumption[stat] = consumption.get(stat, 0.0) + value
-
-            consumption[f"seasonalEfficiency{energy_type}"] = producer.get(
-                "seasonalEfficiency", 0.0
-            )
+                    producer[key] = round(producer[key] / calorific_value, 2)
 
         return consumption
 
