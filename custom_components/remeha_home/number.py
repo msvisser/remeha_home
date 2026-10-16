@@ -318,8 +318,15 @@ class RemehaHomeActivityNumber(CoordinatorEntity, NumberEntity):
         """Return the activity data, falling back to cached data when unavailable."""
         activities = self.coordinator.get_activities(self.climate_zone_id)
         if activities is not None:
+            # Heat pumps with cooling also have Cooling activities with the same
+            # activity numbers, listed before the Heating ones
             match = next(
-                (a for a in activities if a["activityNumber"] == self.activity_number),
+                (
+                    a
+                    for a in activities
+                    if a.get("type") == "Heating"
+                    and a["activityNumber"] == self.activity_number
+                ),
                 None,
             )
             if match is not None:
