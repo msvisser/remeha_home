@@ -1,5 +1,7 @@
 """API for Remeha Home bound to Home Assistant OAuth."""
 
+from __future__ import annotations
+
 import base64
 import datetime
 import hashlib
@@ -16,6 +18,7 @@ from homeassistant.helpers.config_entry_oauth2_flow import (
     OAuth2Session,
 )
 from homeassistant.exceptions import ConfigEntryAuthFailed
+from aiohttp.client_exceptions import ClientResponseError
 
 from .const import DOMAIN
 
@@ -59,7 +62,9 @@ class RemehaHomeAPI:
             "GET", f"/homes/dashboard?t={timestamp}"
         )
         response.raise_for_status()
-        return await response.json()
+        json = await response.json()
+        _LOGGER.debug(json)
+        return json
 
     async def async_set_manual(self, climate_zone_id: str, setpoint: float):
         """Set a climate zone to manual mode with a specific temperature setpoint."""
@@ -124,6 +129,46 @@ class RemehaHomeAPI:
         )
         response.raise_for_status()
 
+    async def async_get_heating_curve(self, climate_zone_id: str) -> dict:
+        """Get the heating curve parameters for a climate zone."""
+        response = await self._async_api_request(
+            "GET",
+            f"/climate-zones/{climate_zone_id}/heating-curve",
+        )
+        response.raise_for_status()
+        return await response.json()
+
+    async def async_set_heating_curve(
+        self, climate_zone_id: str, slope: float, base_setpoint: float
+    ) -> None:
+        """Set the heating curve for a climate zone."""
+        response = await self._async_api_request(
+            "POST",
+            f"/climate-zones/{climate_zone_id}/heating-curve",
+            json={"slope": slope, "baseSetpoint": base_setpoint},
+        )
+        response.raise_for_status()
+
+    async def async_get_activities(self, climate_zone_id: str) -> list:
+        """Get the activity definitions for a climate zone."""
+        response = await self._async_api_request(
+            "GET",
+            f"/climate-zones/{climate_zone_id}/activities",
+        )
+        response.raise_for_status()
+        return await response.json()
+
+    async def async_set_heating_activities(
+        self, climate_zone_id: str, activities: list[dict]
+    ) -> None:
+        """Set the heating activity temperatures for a climate zone."""
+        response = await self._async_api_request(
+            "PUT",
+            f"/climate-zones/{climate_zone_id}/activities/heating",
+            json=activities,
+        )
+        response.raise_for_status()
+
     async def async_get_appliance_technical_information(
         self, appliance_id: str
     ) -> dict:
@@ -133,7 +178,9 @@ class RemehaHomeAPI:
             f"/appliances/{appliance_id}/technicaldetails",
         )
         response.raise_for_status()
-        return await response.json()
+        json = await response.json()
+        _LOGGER.debug(json)
+        return json
 
     async def async_get_consumption_data_for_today(self, appliance_id: str) -> dict:
         """Get technical information for an appliance."""
@@ -150,7 +197,68 @@ class RemehaHomeAPI:
             f"/appliances/{appliance_id}/energyconsumption/daily?startDate={today_string}&endDate={end_of_today_string}",
         )
         response.raise_for_status()
-        return await response.json()
+        json = await response.json()
+        _LOGGER.debug(json)
+        return json
+
+    async def async_set_dhw_comfort_setpoint(
+        self, hot_water_zone_id: str, setpoint: float
+    ):
+        """Set the comfort (continuous) target temperature for a DHW zone."""
+        response = await self._async_api_request(
+            "POST",
+            f"/hot-water-zones/{hot_water_zone_id}/comfort-setpoint",
+            json={"comfortSetpoint": setpoint},
+        )
+        response.raise_for_status()
+
+    async def async_set_dhw_reduced_setpoint(
+        self, hot_water_zone_id: str, setpoint: float
+    ):
+        """Set the eco/reduced target temperature for a DHW zone."""
+        response = await self._async_api_request(
+            "POST",
+            f"/hot-water-zones/{hot_water_zone_id}/reduced-setpoint",
+            json={"reducedSetpoint": setpoint},
+        )
+        response.raise_for_status()
+
+    async def async_set_dhw_mode_eco(self, hot_water_zone_id: str):
+        """Switch the DHW zone to eco (anti-frost) mode."""
+        response = await self._async_api_request(
+            "POST",
+            f"/hot-water-zones/{hot_water_zone_id}/modes/anti-frost",
+        )
+        response.raise_for_status()
+
+    async def async_set_dhw_mode_schedule(self, hot_water_zone_id: str):
+        """Switch the DHW zone to schedule mode."""
+        response = await self._async_api_request(
+            "POST",
+            f"/hot-water-zones/{hot_water_zone_id}/modes/schedule",
+        )
+        response.raise_for_status()
+
+    async def async_set_dhw_mode_comfort(self, hot_water_zone_id: str):
+        """Switch the DHW zone to continuous comfort mode."""
+        response = await self._async_api_request(
+            "POST",
+            f"/hot-water-zones/{hot_water_zone_id}/modes/continuous-comfort",
+        )
+        response.raise_for_status()
+
+    async def async_set_hot_water_boost(self, hot_water_zone_id: str):
+        """Activate boost mode for a DHW zone.
+
+        Boost heats the water to the comfort setpoint for ~30 minutes. The API
+        only accepts this from schedule mode and takes no request body, like the
+        other DHW mode endpoints. Boost is cancelled by switching to another mode.
+        """
+        response = await self._async_api_request(
+            "POST",
+            f"/hot-water-zones/{hot_water_zone_id}/modes/boost",
+        )
+        response.raise_for_status()
 
 
 class RemehaHomeAuthFailed(Exception):

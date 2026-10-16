@@ -10,7 +10,8 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -21,10 +22,27 @@ from .const import (
     CLIMATE_ZONE_SENSOR_TYPES,
     DOMAIN,
     HOT_WATER_ZONE_SENSOR_TYPES,
+    GAS_PRODUCER_SENSOR_TYPES,
+    ELECTRIC_PRODUCER_SENSOR_TYPES
 )
-from .coordinator import RemehaHomeUpdateCoordinator
+from .coordinator import (
+    PRODUCER_STATS,
+    RemehaHomeUpdateCoordinator,
+    get_producer_id,
+    get_producers,
+)
 
 _LOGGER = logging.getLogger(__name__)
+
+# Totals per energy type on the appliance, replaced by the sensors of the producer devices
+REMOVED_APPLIANCE_SENSOR_KEYS = [
+    *(
+        f"consumptionData.{stat}{energy_type}"
+        for energy_type in ("Electric", "NaturalGas")
+        for stat in PRODUCER_STATS
+    ),
+    "consumptionData.seasonalEfficiencyElectric",
+]
 
 
 async def async_setup_entry(
@@ -54,8 +72,55 @@ async def async_setup_entry(
                 entities.append(
                     RemehaHomeSensor(coordinator, hot_water_zone_id, entity_description)
                 )
-
     async_add_entities(entities)
+
+    _async_remove_replaced_sensors(hass, coordinator)
+
+    known_producer_ids: set[str] = set()
+
+    @callback
+    def async_add_producer_sensors() -> None:
+        """Add the sensors of producers that were not seen before.
+
+        Right after midnight the API doesn't list the producers until the data for
+        the new day is reported, so they can appear after the setup.
+        """
+        new_entities = []
+        for appliance in coordinator.data["appliances"]:
+            for producer in get_producers(appliance["consumptionData"]):
+                producer_id = get_producer_id(appliance["applianceId"], producer)
+                if producer_id in known_producer_ids:
+                    continue
+                known_producer_ids.add(producer_id)
+
+                if producer.get("energyType") == "NaturalGas":
+                    entity_descriptions = GAS_PRODUCER_SENSOR_TYPES
+                else:
+                    entity_descriptions = ELECTRIC_PRODUCER_SENSOR_TYPES
+                new_entities.extend(
+                    RemehaHomeSensor(coordinator, producer_id, entity_description)
+                    for entity_description in entity_descriptions
+                )
+
+        if new_entities:
+            async_add_entities(new_entities)
+
+    async_add_producer_sensors()
+    entry.async_on_unload(coordinator.async_add_listener(async_add_producer_sensors))
+
+
+def _async_remove_replaced_sensors(
+    hass: HomeAssistant, coordinator: RemehaHomeUpdateCoordinator
+) -> None:
+    """Remove the totals per energy type, replaced by the producer devices."""
+    entity_registry = er.async_get(hass)
+    for appliance in coordinator.data["appliances"]:
+        for key in REMOVED_APPLIANCE_SENSOR_KEYS:
+            unique_id = "_".join([DOMAIN, appliance["applianceId"], key])
+            if entity_id := entity_registry.async_get_entity_id(
+                "sensor", DOMAIN, unique_id
+            ):
+                entity_registry.async_remove(entity_id)
 
 
 class RemehaHomeSensor(CoordinatorEntity, SensorEntity):
@@ -87,7 +152,7 @@ class RemehaHomeSensor(CoordinatorEntity, SensorEntity):
         for part in self.entity_description.key.split("."):
             # If the key is missing for some reason, don't crash, instead return None
             if part not in data:
-                _LOGGER.warning(
+                _LOGGER.debug(
                     "Key not found in data: %s", self.entity_description.key
                 )
                 return None

@@ -30,6 +30,32 @@
                     }
                 }
             }
+        },
+        "water_heater": {
+            "remeha_home_dhw": {
+                "state": {
+                    "heat_pump": "Schema",
+                    "performance": "Comfort",
+                    "eco": "Eco",
+                    "high_demand": "Boost"
+                },
+                "state_attributes": {
+                    "current_temperature": {
+                        "name": "Huidige temperatuur"
+                    }
+                }
+            }
+        }
+    },
+    "exceptions": {
+        "set_temperature_while_off": {
+            "message": "Kan geen temperatuur instellen terwijl de zone op vorstbeveiliging staat. Wijzig eerst de modus, of geef `hvac_mode` mee samen met de temperatuur."
+        },
+        "boost_requires_schedule": {
+            "message": "Boost kan alleen worden gestart als de warmwaterzone op Schema staat."
+        },
+        "eco_setpoint_requires_tank": {
+            "message": "De Eco-temperatuur kan alleen worden aangepast bij een warmwatertank. Een combiketel houdt in Eco geen water warm, dus er is geen temperatuur om in te stellen."
         }
     }
 }

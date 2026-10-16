@@ -9,7 +9,7 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntityDescription,
     BinarySensorDeviceClass,
 )
-from homeassistant.const import UnitOfEnergy, UnitOfTemperature, UnitOfPressure
+from homeassistant.const import UnitOfEnergy, UnitOfTemperature, UnitOfPressure, UnitOfVolume
 
 DOMAIN = "remeha_home"
 
@@ -20,6 +20,10 @@ APPLIANCE_SENSOR_TYPES = [
         native_unit_of_measurement=UnitOfPressure.BAR,
         device_class=SensorDeviceClass.PRESSURE,
         state_class=SensorStateClass.MEASUREMENT,
+    ),
+    SensorEntityDescription(
+        key="activeThermalMode",
+        name="Thermal Mode",
     ),
     SensorEntityDescription(
         key="outdoorTemperatureInformation.applianceOutdoorTemperature",
@@ -86,7 +90,86 @@ APPLIANCE_SENSOR_TYPES = [
     ),
 ]
 
+ELECTRIC_PRODUCER_SENSOR_TYPES = [
+    SensorEntityDescription(
+        key="energyConsumptionCH",
+        name="Heating Energy Consumed",
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+    ),
+    SensorEntityDescription(
+        key="energyConsumptionDHW",
+        name="Hot Water Energy Consumed",
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+    ),
+    SensorEntityDescription(
+        key="energyConsumptionCooling",
+        name="Cooling Energy Consumed",
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+    ),
+    SensorEntityDescription(
+        key="energyProductionCH",
+        name="Heating Energy Delivered",
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+    ),
+    SensorEntityDescription(
+        key="energyProductionDHW",
+        name="Hot Water Energy Delivered",
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+    ),
+    SensorEntityDescription(
+        key="energyProductionCooling",
+        name="Cooling Energy Delivered",
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+    ),
+    SensorEntityDescription(
+        # Running seasonal value (SCOP) reported by Remeha, not the efficiency of the day
+        key="seasonalEfficiency",
+        name="Seasonal Efficiency",
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+]
+
+GAS_PRODUCER_SENSOR_TYPES = [
+    SensorEntityDescription(
+        key="energyConsumptionCH",
+        name="Heating Energy Consumed",
+        native_unit_of_measurement=UnitOfVolume.CUBIC_METERS,
+        device_class=SensorDeviceClass.GAS,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+    ),
+    SensorEntityDescription(
+        key="energyConsumptionDHW",
+        name="Hot Water Energy Consumed",
+        native_unit_of_measurement=UnitOfVolume.CUBIC_METERS,
+        device_class=SensorDeviceClass.GAS,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+    )
+]
+
 CLIMATE_ZONE_SENSOR_TYPES = [
+    SensorEntityDescription(
+        key="roomTemperature",
+        name="Room Temperature",
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    SensorEntityDescription(
+        key="activeComfortDemand",
+        name="Status",
+    ),
     SensorEntityDescription(
         key="nextSetpoint",
         name="Next Setpoint",
@@ -119,6 +202,15 @@ HOT_WATER_ZONE_SENSOR_TYPES = [
         name="Status",
         entity_registry_enabled_default=False,
     ),
+    SensorEntityDescription(
+        key="dhwCurrentActivity",
+        name="Mode",
+    ),
+    SensorEntityDescription(
+        key="nextSwitchTime",
+        name="Next Setpoint Time",
+        device_class=SensorDeviceClass.TIMESTAMP,
+    ),
 ]
 
 CLIMATE_ZONE_BINARY_SENSOR_TYPES = [
@@ -129,7 +221,8 @@ CLIMATE_ZONE_BINARY_SENSOR_TYPES = [
             entity_registry_enabled_default=False,
             device_class=BinarySensorDeviceClass.HEAT,
         ),
-        lambda value: value in ["ProducingHeat", "RequestingHeat"],
+        lambda value: value
+        in ["ProducingHeat", "RequestingHeat", "ProducingCold", "RequestingCold"],
     )
 ]
 

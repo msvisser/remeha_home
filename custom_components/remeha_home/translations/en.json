@@ -34,6 +34,32 @@
                     }
                 }
             }
+        },
+        "water_heater": {
+            "remeha_home_dhw": {
+                "state": {
+                    "heat_pump": "Schedule",
+                    "performance": "Comfort",
+                    "eco": "Eco",
+                    "high_demand": "Boost"
+                },
+                "state_attributes": {
+                    "current_temperature": {
+                        "name": "Current temperature"
+                    }
+                }
+            }
+        }
+    },
+    "exceptions": {
+        "set_temperature_while_off": {
+            "message": "Cannot set a temperature while the zone is in frost protection. Change the HVAC mode first, or pass `hvac_mode` together with the temperature."
+        },
+        "boost_requires_schedule": {
+            "message": "Boost can only be started while the hot water zone is in Schedule mode."
+        },
+        "eco_setpoint_requires_tank": {
+            "message": "The Eco temperature can only be changed for a hot water tank. A combi boiler doesn't keep water warm in Eco, so there is no temperature to set."
         }
     }
 }
