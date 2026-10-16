@@ -50,6 +50,9 @@
     "exceptions": {
         "set_temperature_while_off": {
             "message": "Impossible de régler une température lorsque la zone est en mode hors-gel. Changez d'abord le mode, ou indiquez `hvac_mode` avec la température."
+        },
+        "boost_requires_schedule": {
+            "message": "Le boost ne peut être lancé que lorsque la zone d'eau chaude est en mode Programme."
         }
     }
 }

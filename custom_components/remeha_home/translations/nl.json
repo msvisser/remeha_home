@@ -50,6 +50,9 @@
     "exceptions": {
         "set_temperature_while_off": {
             "message": "Kan geen temperatuur instellen terwijl de zone op vorstbeveiliging staat. Wijzig eerst de modus, of geef `hvac_mode` mee samen met de temperatuur."
+        },
+        "boost_requires_schedule": {
+            "message": "Boost kan alleen worden gestart als de warmwaterzone op Schema staat."
         }
     }
 }

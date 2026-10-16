@@ -54,6 +54,9 @@
     "exceptions": {
         "set_temperature_while_off": {
             "message": "Nie można ustawić temperatury, gdy strefa jest w trybie ochrony przed zamarzaniem. Najpierw zmień tryb lub podaj `hvac_mode` razem z temperaturą."
+        },
+        "boost_requires_schedule": {
+            "message": "Boost można uruchomić tylko wtedy, gdy strefa ciepłej wody jest w trybie Harmonogram."
         }
     }
 }

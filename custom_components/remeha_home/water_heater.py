@@ -15,6 +15,7 @@ from homeassistant.components.water_heater import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_TEMPERATURE, PRECISION_HALVES, UnitOfTemperature
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -109,12 +110,11 @@ class RemehaHomeWaterHeater(CoordinatorEntity, WaterHeaterEntity):
     def operation_list(self) -> list[str]:
         """Return the list of available operation modes.
 
-        Boost can only be started from schedule mode, so it is only offered when
-        the zone is currently scheduling (or already boosting, to keep the
-        active state valid).
+        Boost is started and stopped with the Boost switch. It is only listed while
+        the zone is boosting, so the active mode can be shown.
         """
         modes = [STATE_HEAT_PUMP, STATE_PERFORMANCE, STATE_ECO]
-        if self._data.get("dhwZoneMode") in ("Scheduling", "Boost"):
+        if self._data.get("dhwZoneMode") == "Boost":
             modes.append(STATE_HIGH_DEMAND)
         return modes
 
@@ -243,13 +243,11 @@ class RemehaHomeWaterHeater(CoordinatorEntity, WaterHeaterEntity):
         elif target_mode == "Off":
             await self.api.async_set_dhw_mode_eco(self.hot_water_zone_id)
         elif target_mode == "Boost":
-            current_mode = self._data.get("dhwZoneMode")
-            if current_mode != "Scheduling":
-                _LOGGER.warning(
-                    "DHW boost can only be activated from schedule mode (current: %s)",
-                    current_mode,
+            if self._data.get("dhwZoneMode") != "Scheduling":
+                raise ServiceValidationError(
+                    translation_domain=DOMAIN,
+                    translation_key="boost_requires_schedule",
                 )
-                return
             await self.api.async_set_hot_water_boost(self.hot_water_zone_id)
         else:
             return
