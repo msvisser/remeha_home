@@ -23,7 +23,7 @@ You can simply log in using the credentials that you would use in the respective
     - Switch to control fireplace mode
 - Each hot water zone exposes:
     - The water temperature and status
-    - Water heater control with modes (Schedule, Comfort, Eco) and target temperature
+    - Water heater control with modes (Schedule, Comfort, Eco) and target temperature, the same modes as in the Remeha Home app
     - Setpoint numbers for Comfort and Eco temperatures
     - A switch to trigger boost (if supported by the appliance)
 - Each appliance (CV-ketel) exposes the following sensors:

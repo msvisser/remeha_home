@@ -36,7 +36,7 @@
                 "state": {
                     "heat_pump": "Schema",
                     "performance": "Comfort",
-                    "eco": "Vorstbeveiliging",
+                    "eco": "Eco",
                     "high_demand": "Boost"
                 },
                 "state_attributes": {

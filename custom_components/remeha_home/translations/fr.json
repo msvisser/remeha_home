@@ -36,7 +36,7 @@
                 "state": {
                     "heat_pump": "Programme",
                     "performance": "Confort",
-                    "eco": "Hors gel",
+                    "eco": "Éco",
                     "high_demand": "Boost"
                 },
                 "state_attributes": {

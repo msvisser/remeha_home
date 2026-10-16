@@ -381,7 +381,8 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
                 return activity
             return self.dhw_activity_cache.get(zone.get("hotWaterZoneId"))
         if mode == "Off":
-            activity = "Anti-Frost"
+            # Called Eco in the Remeha Home app, the reduced setpoint applies
+            activity = "Eco"
             self.dhw_activity_cache[zone.get("hotWaterZoneId")] = activity
             return activity
         return None
