@@ -1,7 +1,10 @@
 {
     "config": {
         "abort": {
-            "failed_to_authenticate": "Failed to authenticate"
+            "already_configured": "This Remeha Home account is already set up",
+            "failed_to_authenticate": "Failed to authenticate",
+            "reauth_successful": "Re-authentication was successful",
+            "wrong_account": "Log in with the Remeha Home account that was set up before. To switch to another account, delete the integration and add it again."
         },
         "error": {
             "failed_to_authenticate": "Invalid email address and/or password"

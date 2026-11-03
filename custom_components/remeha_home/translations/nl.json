@@ -1,7 +1,10 @@
 {
     "config": {
         "abort": {
-            "failed_to_authenticate": "Authentificeren mislukt"
+            "already_configured": "Dit Remeha Home-account is al ingesteld",
+            "failed_to_authenticate": "Authentificeren mislukt",
+            "reauth_successful": "Opnieuw inloggen is gelukt",
+            "wrong_account": "Log in met het Remeha Home-account dat eerder is ingesteld. Wil je een ander account gebruiken, verwijder dan de integratie en voeg hem opnieuw toe."
         },
         "error": {
             "failed_to_authenticate": "Verkeerd e-mailadres en/of wachtwoord"
