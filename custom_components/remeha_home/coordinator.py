@@ -13,11 +13,12 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.redact import async_redact_data
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.exceptions import ConfigEntryAuthFailed
 
 from .api import RemehaHomeAPI
-from .const import DOMAIN
+from .const import DOMAIN, TO_REDACT
 from .producer_ids import ProducerIdResolver, is_valid_producer
 from .util import detect_dhw_setpoint_activity
 
@@ -137,7 +138,9 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
         so entities can quickly look up their data.
         """
         data = await self.api.async_get_dashboard()
-        _LOGGER.debug("Requested dashboard information: %s", data)
+        _LOGGER.debug(
+            "Requested dashboard information: %s", async_redact_data(data, TO_REDACT)
+        )
 
         # Save the current time for appliance usage data updates
         now = datetime.now()
@@ -156,7 +159,7 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
                 _LOGGER.debug(
                     "Requested technical information for appliance %s: %s",
                     appliance_id,
-                    self.technical_info[appliance_id],
+                    async_redact_data(self.technical_info[appliance_id], TO_REDACT),
                 )
 
             # Only update appliance usage data every 15 minutes
@@ -173,7 +176,7 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
                     _LOGGER.debug(
                         "Requested consumption data for appliance %s: %s",
                         appliance_id,
-                        consumption_data,
+                        async_redact_data(consumption_data, TO_REDACT),
                     )
 
                     if len(consumption_data["data"]) > 0:
@@ -280,7 +283,9 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
                         _LOGGER.debug(
                             "Requested activities data for climate zone %s: %s",
                             climate_zone_id,
-                            self.activities_data[climate_zone_id],
+                            async_redact_data(
+                                self.activities_data[climate_zone_id], TO_REDACT
+                            ),
                         )
                     except (ClientError, TimeoutError) as err:
                         # Optional: requested again at the next update
