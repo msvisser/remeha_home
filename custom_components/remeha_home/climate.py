@@ -114,7 +114,6 @@ async def async_setup_entry(
 class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
     """Climate entity representing a Remeha Home climate zone."""
 
-    _enable_turn_on_off_backwards_compatibility = False
     _attr_supported_features = (
         ClimateEntityFeature.TARGET_TEMPERATURE
         | ClimateEntityFeature.PRESET_MODE
