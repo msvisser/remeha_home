@@ -1,7 +1,10 @@
 {
     "config": {
         "abort": {
-            "failed_to_authenticate": "Authentification interrompue"
+            "already_configured": "Ce compte Remeha Home est déjà configuré",
+            "failed_to_authenticate": "Authentification interrompue",
+            "reauth_successful": "La réauthentification a réussi",
+            "wrong_account": "Connectez-vous avec le compte Remeha Home configuré auparavant. Pour utiliser un autre compte, supprimez l'intégration et ajoutez-la à nouveau."
         },
         "error": {
             "failed_to_authenticate": "Adresse email ou mot de passe invalide"
