@@ -103,9 +103,7 @@ class RemehaHomeAPI:
             "GET", f"/homes/dashboard?t={timestamp}"
         )
         response.raise_for_status()
-        json = await response.json()
-        _LOGGER.debug(json)
-        return json
+        return await response.json()
 
     async def async_set_manual(self, climate_zone_id: str, setpoint: float):
         """Set a climate zone to manual mode with a specific temperature setpoint."""
@@ -250,9 +248,7 @@ class RemehaHomeAPI:
             f"/appliances/{appliance_id}/technicaldetails",
         )
         response.raise_for_status()
-        json = await response.json()
-        _LOGGER.debug(json)
-        return json
+        return await response.json()
 
     async def async_get_consumption_data_for_today(self, appliance_id: str) -> dict:
         """Get technical information for an appliance."""
@@ -269,9 +265,7 @@ class RemehaHomeAPI:
             f"/appliances/{appliance_id}/energyconsumption/daily?startDate={today_string}&endDate={end_of_today_string}",
         )
         response.raise_for_status()
-        json = await response.json()
-        _LOGGER.debug(json)
-        return json
+        return await response.json()
 
     async def async_set_dhw_comfort_setpoint(
         self, hot_water_zone_id: str, setpoint: float

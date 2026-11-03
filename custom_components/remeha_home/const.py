@@ -19,6 +19,22 @@ from homeassistant.const import (
 
 DOMAIN = "remeha_home"
 
+# Personal data in the API responses, redacted in the diagnostics and the debug log.
+# The ids (applianceId, climateZoneId, ...) are kept: they are random, and needed
+# to match the data to the entities.
+TO_REDACT = {
+    # The config entry is titled with the email address used to log in
+    "title",
+    "token",
+    # Names typed in the Remeha Home app: home, zones and activities
+    "houseName",
+    "name",
+    "controlledZoneName",
+    # Identify the hardware: serial number of a gateway, device index of a producer
+    "serialNumber",
+    "deviceIndex",
+}
+
 # The clock programs, the presets of the climate entity
 PRESET_INDEX_TO_PRESET_MODE = {
     1: "clock_program_1",

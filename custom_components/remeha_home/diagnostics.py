@@ -8,22 +8,7 @@ from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from .const import DOMAIN
-
-# Redacted wherever they appear. The ids (applianceId, climateZoneId, ...) are kept:
-# they are random, and needed to match the data to the entities.
-TO_REDACT = {
-    # The config entry is titled with the email address used to log in
-    "title",
-    "token",
-    # Names typed in the Remeha Home app: home, zones and activities
-    "houseName",
-    "name",
-    "controlledZoneName",
-    # Identify the hardware: serial number of a gateway, device index of a producer
-    "serialNumber",
-    "deviceIndex",
-}
+from .const import DOMAIN, TO_REDACT
 
 
 async def async_get_config_entry_diagnostics(

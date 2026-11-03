@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import base64
 import json
+import logging
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
@@ -140,10 +141,11 @@ async def test_second_login_doesnt_replace_the_account(
 
 
 async def test_reauth_updates_the_token(
-    hass: HomeAssistant, existing_entry, mock_setup
+    hass: HomeAssistant, existing_entry, mock_setup, caplog
 ) -> None:
     """Logging in again with the same account stores the new token."""
     new_token = token("account-1") | {"refresh_token": "new-refresh"}
+    caplog.set_level(logging.DEBUG, logger="custom_components.remeha_home")
 
     result = await existing_entry.start_reauth_flow(hass)
     assert result["step_id"] == "reauth_confirm"
@@ -155,6 +157,9 @@ async def test_reauth_updates_the_token(
     assert abort_text("reauth_successful")
     assert existing_entry.data["token"]["refresh_token"] == "new-refresh"
     assert len(hass.config_entries.async_entries(DOMAIN)) == 1
+    # The debug log doesn't show the tokens
+    assert "refresh-account-1" not in caplog.text
+    assert access_token("account-1") not in caplog.text
 
 
 async def test_reauth_with_another_account_is_refused(
