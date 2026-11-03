@@ -6,8 +6,7 @@ from collections import Counter
 from datetime import date, datetime, timedelta
 import logging
 
-import asyncio
-from aiohttp.client_exceptions import ClientResponseError
+from aiohttp.client_exceptions import ClientError, ClientResponseError
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -23,6 +22,8 @@ from .producer_ids import ProducerIdResolver, is_valid_producer
 from .util import detect_dhw_setpoint_activity
 
 _LOGGER = logging.getLogger(__name__)
+
+MAX_FAILED_UPDATES = 3
 
 PRODUCER_TYPE_NAMES = {
     "HeatPumpAirSource": "Heat Pump (Air Source)",
@@ -92,26 +93,51 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
         self.heating_curve_last_update: dict[str, datetime] = {}
         self.heating_curve_unsupported: set[str] = set()
         self.activities_data: dict[str, list] = {}
+        # Failed updates in a row, see _async_update_data
+        self.failed_updates = 0
 
     async def _async_update_data(self):
-        """Fetch data from API endpoint.
+        """Fetch the data, and keep the previous data when an update fails once.
 
-        This is the place to pre-process the data to lookup tables
-        so entities can quickly look up their data.
+        The Remeha API regularly times out for a minute or two. Keeping the
+        previous data for a few updates stops the entities from becoming
+        unavailable every time that happens.
         """
         try:
-            # Note: asyncio.TimeoutError and aiohttp.ClientError are already
-            # handled by the data update coordinator.
-            async with asyncio.timeout(30):
-                data = await self.api.async_get_dashboard()
-                _LOGGER.debug("Requested dashboard information: %s", data)
+            data = await self._async_fetch_data()
         except ClientResponseError as err:
             # Raising ConfigEntryAuthFailed will cancel future updates
             # and start a config flow with SOURCE_REAUTH (async_step_reauth)
             if err.status == 401:
                 raise ConfigEntryAuthFailed from err
+            reason = f"{err.status}, {err.message}"
+            error = err
+        except TimeoutError as err:
+            reason = "timeout"
+            error = err
+        except ClientError as err:
+            reason = str(err) or type(err).__name__
+            error = err
+        else:
+            self.failed_updates = 0
+            return data
 
-            raise UpdateFailed from err
+        self.failed_updates += 1
+        if self.data is not None and self.failed_updates < MAX_FAILED_UPDATES:
+            _LOGGER.debug(
+                "Failed to update the data (%s), keeping the previous data", reason
+            )
+            return self.data
+        raise UpdateFailed(f"Failed to update the data: {reason}") from error
+
+    async def _async_fetch_data(self):
+        """Fetch data from API endpoint.
+
+        This is the place to pre-process the data to lookup tables
+        so entities can quickly look up their data.
+        """
+        data = await self.api.async_get_dashboard()
+        _LOGGER.debug("Requested dashboard information: %s", data)
 
         # Save the current time for appliance usage data updates
         now = datetime.now()
@@ -256,9 +282,10 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
                             climate_zone_id,
                             self.activities_data[climate_zone_id],
                         )
-                    except ClientResponseError as err:
+                    except (ClientError, TimeoutError) as err:
+                        # Optional: requested again at the next update
                         _LOGGER.warning(
-                            "Failed to request activities data for climate zone %s: %s",
+                            "Failed to request activities data for climate zone %s: %r",
                             climate_zone_id,
                             err,
                         )
@@ -336,6 +363,13 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
                     climate_zone_id,
                     err,
                 )
+        except (ClientError, TimeoutError) as err:
+            # Optional: requested again at the next interval
+            _LOGGER.warning(
+                "Failed to request heating curve data for climate zone %s: %r",
+                climate_zone_id,
+                err,
+            )
 
     def invalidate_heating_curve(self, climate_zone_id: str) -> None:
         """Request the heating curve of a climate zone again on the next update."""

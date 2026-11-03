@@ -11,7 +11,7 @@ import secrets
 import urllib
 
 import asyncio
-from aiohttp import ClientSession
+from aiohttp import ClientSession, ClientTimeout
 
 from homeassistant.helpers.config_entry_oauth2_flow import (
     AbstractOAuth2Implementation,
@@ -22,6 +22,10 @@ from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
 from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
+
+# Home Assistant's shared session has no timeout of its own, so without one a request
+# could hang for aiohttp's default of 5 minutes and hold up the updates.
+REQUEST_TIMEOUT = 30
 
 # Holiday mode: POST /appliances/{id}/holidayschedule (ApplianceHolidayScheduleRequestDto
 # in the Remeha Home app), verified against the live API on 2026-10-22. The API keeps
@@ -83,6 +87,7 @@ class RemehaHomeAPI:
         return await self._oauth_session.async_request(
             method,
             "https://api.bdrthermea.net/Mobile/api" + path,
+            timeout=ClientTimeout(total=REQUEST_TIMEOUT),
             **kwargs,
             headers={
                 **headers,
