@@ -20,3 +20,21 @@ cancel_holiday_mode:
     entity:
       integration: remeha_home
       domain: binary_sensor
+
+get_energy_history:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: remeha_home
+    start_date:
+      required: true
+      example: "2026-01-01"
+      selector:
+        date:
+    end_date:
+      required: true
+      example: "2026-01-31"
+      selector:
+        date:

@@ -116,6 +116,24 @@
         "cancel_holiday_mode": {
             "name": "Anuluj tryb urlopowy",
             "description": "Zatrzymaj trwający tryb urlopowy albo usuń zaplanowany."
+        },
+        "get_energy_history": {
+            "name": "Pobierz historię energii",
+            "description": "Pobierz orientacyjne dzienne dane energetyczne urządzenia Remeha bez zmiany ogrzewania ani tworzenia encji. Maksymalnie 366 dni na żądanie.",
+            "fields": {
+                "device_id": {
+                    "name": "Urządzenie Remeha",
+                    "description": "Wybierz urządzenie Remeha, pompę ciepła lub kocioł."
+                },
+                "start_date": {
+                    "name": "Data początkowa",
+                    "description": "Pierwszy dzień kalendarzowy (włącznie)."
+                },
+                "end_date": {
+                    "name": "Data końcowa",
+                    "description": "Ostatni dzień kalendarzowy (włącznie)."
+                }
+            }
         }
     }
 }

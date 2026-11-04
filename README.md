@@ -66,6 +66,27 @@ You can simply log in using the credentials that you would use in the respective
     The energy values come from Remeha and are updated every 15 minutes. Remeha only reports them with a delay of about 2 hours, and right after midnight the values of the new day start at 0.
     On hybrid setups where the existing gas boiler heats the hot water, such as the Remeha Elga Ace, Remeha does not report the gas used for hot water, so that sensor stays at 0.
 
+### Read-only energy history
+
+The read-only `remeha_home.get_energy_history` action retrieves Remeha's daily
+**space-heating** energy estimates for up to 366 inclusive local calendar days.
+Choose a Remeha appliance or producer in **Developer tools → Actions**:
+
+```yaml
+action: remeha_home.get_energy_history
+data:
+  device_id: "<select your Remeha device in the visual editor>"
+  start_date: "2026-01-01"
+  end_date: "2026-01-31"
+```
+
+The response contains daily heat-pump electricity and delivered heat in kWh,
+daily indicative heating COP, gas heating energy in kWh, and an energy-weighted
+COP over reported days. A flag indicates whether the requested period is
+complete. The API's gas kWh differ from the m³ shown by the existing gas
+sensors. Remeha's figures are **estimates**, not independently metered
+values. No entities or Home Assistant statistics are changed.
+
 ## Installation
 This integration needs Home Assistant 2026.10 or newer.
 

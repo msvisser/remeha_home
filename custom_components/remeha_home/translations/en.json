@@ -116,6 +116,24 @@
         "cancel_holiday_mode": {
             "name": "Cancel holiday mode",
             "description": "Stop an active holiday mode or remove a scheduled one."
+        },
+        "get_energy_history": {
+            "name": "Get energy history",
+            "description": "Retrieve Remeha's indicative daily energy estimates for the selected appliance. This read-only action returns data without creating entities or changing your heating settings. Up to 366 days per request.",
+            "fields": {
+                "device_id": {
+                    "name": "Remeha device",
+                    "description": "Choose the Remeha appliance or its heat-pump/boiler device."
+                },
+                "start_date": {
+                    "name": "Start date",
+                    "description": "First calendar day to retrieve (inclusive)."
+                },
+                "end_date": {
+                    "name": "End date",
+                    "description": "Last calendar day to retrieve (inclusive)."
+                }
+            }
         }
     }
 }

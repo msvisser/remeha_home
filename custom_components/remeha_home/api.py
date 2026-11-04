@@ -267,6 +267,24 @@ class RemehaHomeAPI:
         response.raise_for_status()
         return await response.json()
 
+    async def async_get_consumption_data_for_range(
+        self, appliance_id: str, start_date: date, end_date: date
+    ) -> dict:
+        """Get read-only daily energy history for an inclusive date range.
+
+        The existing today poll is intentionally unchanged. Dates here are
+        calendar dates, and both bounds are included in the API request.
+        """
+        start = f"{start_date.isoformat()}T00:00:00.000Z"
+        end = f"{end_date.isoformat()}T23:59:59.999Z"
+        response = await self._async_api_request(
+            "GET",
+            f"/appliances/{appliance_id}/energyconsumption/daily",
+            params={"startDate": start, "endDate": end},
+        )
+        response.raise_for_status()
+        return await response.json()
+
     async def async_set_dhw_comfort_setpoint(
         self, hot_water_zone_id: str, setpoint: float
     ):

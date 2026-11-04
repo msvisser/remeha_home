@@ -116,6 +116,24 @@
         "cancel_holiday_mode": {
             "name": "Annuler le mode vacances",
             "description": "Arrêter un mode vacances actif ou supprimer un mode vacances planifié."
+        },
+        "get_energy_history": {
+            "name": "Obtenir l'historique énergétique",
+            "description": "Récupérer les estimations quotidiennes indicatives du dispositif Remeha sélectionné, sans modifier le chauffage ni créer d'entités. Maximum 366 jours par demande.",
+            "fields": {
+                "device_id": {
+                    "name": "Appareil Remeha",
+                    "description": "Choisir l'appareil Remeha, sa pompe à chaleur ou sa chaudière."
+                },
+                "start_date": {
+                    "name": "Date de début",
+                    "description": "Premier jour civil inclus."
+                },
+                "end_date": {
+                    "name": "Date de fin",
+                    "description": "Dernier jour civil inclus."
+                }
+            }
         }
     }
 }

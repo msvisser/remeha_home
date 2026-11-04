@@ -116,6 +116,24 @@
         "cancel_holiday_mode": {
             "name": "Vakantiemodus stoppen",
             "description": "Stop een actieve vakantiemodus of verwijder een geplande."
+        },
+        "get_energy_history": {
+            "name": "Energiehistorie ophalen",
+            "description": "Vraag de indicatieve dagelijkse energiegegevens van het gekozen Remeha-toestel op. Deze alleen-lezen actie maakt geen entiteiten aan en wijzigt de verwarming niet. Maximaal 366 dagen per aanvraag.",
+            "fields": {
+                "device_id": {
+                    "name": "Remeha-toestel",
+                    "description": "Kies het Remeha-toestel of de bijbehorende warmtepomp of gasketel."
+                },
+                "start_date": {
+                    "name": "Begindatum",
+                    "description": "Eerste kalenderdag (inclusief)."
+                },
+                "end_date": {
+                    "name": "Einddatum",
+                    "description": "Laatste kalenderdag (inclusief)."
+                }
+            }
         }
     }
 }

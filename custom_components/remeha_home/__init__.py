@@ -13,6 +13,7 @@ from .api import RemehaHomeOAuth2Implementation, RemehaHomeAPI
 from .config_flow import RemehaHomeLoginFlowHandler
 from .const import DOMAIN
 from .coordinator import RemehaHomeUpdateCoordinator
+from .energy_history_service import async_register_energy_history_service
 from .holiday import STORAGE_VERSION, HolidayModeRestorer, storage_key
 from .producer_ids import ProducerIdResolver
 
@@ -44,6 +45,8 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
         hass,
         RemehaHomeOAuth2Implementation(async_get_clientsession(hass)),
     )
+
+    async_register_energy_history_service(hass)
 
     return True
 
