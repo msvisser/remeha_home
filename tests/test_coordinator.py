@@ -133,4 +133,4 @@ async def test_optional_data_errors_dont_fail_the_update(
     await setup_integration(hass, config_entry, mock_api)
 
     assert config_entry.state is ConfigEntryState.LOADED
-    assert hass.states.get(CLIMATE).state == "heat_cool"
+    assert hass.states.get(CLIMATE).state == "heat"

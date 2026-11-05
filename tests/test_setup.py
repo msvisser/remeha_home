@@ -37,5 +37,5 @@ async def test_setup(hass: HomeAssistant, config_entry, mock_api, caplog) -> Non
 
     climate = hass.states.get("climate.woonkamer")
     assert climate is not None
-    assert climate.state == "heat_cool"
+    assert climate.state == "heat"
     assert hass.states.get("water_heater.dhw").state == "heat_pump"
