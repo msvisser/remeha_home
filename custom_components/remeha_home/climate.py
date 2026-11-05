@@ -86,6 +86,13 @@ def map_remeha_status_to_hvac_action(status: str | None) -> HVACAction | None:
     return None
 
 
+# Home Assistant 2026.11 gave climate and water heater entities native temperature
+# members (native_temperature_unit, native_current_temperature and
+# native_target_temperature) and deprecated the old names until 2027.11. Earlier
+# versions only know the old names, so the entities use whichever this version has.
+NATIVE_TEMPERATURE_MEMBERS = hasattr(ClimateEntity, "native_temperature_unit")
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
@@ -114,7 +121,10 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
         | ClimateEntityFeature.TURN_OFF
         | ClimateEntityFeature.TURN_ON
     )
-    _attr_temperature_unit = UnitOfTemperature.CELSIUS
+    if NATIVE_TEMPERATURE_MEMBERS:
+        _attr_native_temperature_unit = UnitOfTemperature.CELSIUS
+    else:
+        _attr_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_precision = PRECISION_HALVES
     _attr_has_entity_name = True
     _attr_name = None
@@ -169,17 +179,22 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
             else "Boiler"
         )
 
-    @property
-    def current_temperature(self) -> float | None:
+    def _room_temperature(self) -> float | None:
         """Return the current temperature."""
         return self._data["roomTemperature"]
 
-    @property
-    def target_temperature(self) -> float | None:
+    def _setpoint(self) -> float | None:
         """Return the target temperature."""
         if self.hvac_mode == HVACMode.OFF:
             return None
         return self._data["setPoint"]
+
+    if NATIVE_TEMPERATURE_MEMBERS:
+        native_current_temperature = property(_room_temperature)
+        native_target_temperature = property(_setpoint)
+    else:
+        current_temperature = property(_room_temperature)
+        target_temperature = property(_setpoint)
 
     @property
     def min_temp(self) -> float:

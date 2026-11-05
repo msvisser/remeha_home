@@ -39,7 +39,6 @@ class RemehaHomeLoginFlowHandler(AbstractOAuth2FlowHandler, domain=DOMAIN):
     """Config flow to handle RemehaHome authentication."""
 
     DOMAIN = DOMAIN
-    CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
     def __init__(self):
         """Create a Remeha Home login flow."""
