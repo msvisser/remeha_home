@@ -8,7 +8,7 @@ import hashlib
 import json
 import logging
 import secrets
-import urllib
+import urllib.parse
 
 import asyncio
 from aiohttp import ClientSession, ClientTimeout
@@ -68,19 +68,9 @@ def _error_message(text: str) -> str:
 class RemehaHomeAPI:
     """Provide Remeha Home authentication tied to an OAuth2 based config entry."""
 
-    def __init__(
-        self,
-        oauth_session: OAuth2Session = None,
-    ) -> None:
+    def __init__(self, oauth_session: OAuth2Session) -> None:
         """Initialize Remeha Home auth."""
         self._oauth_session = oauth_session
-
-    async def async_get_access_token(self) -> str:
-        """Return a valid access token."""
-        if not self._oauth_session.valid_token:
-            await self._oauth_session.async_ensure_token_valid()
-
-        return self._oauth_session.token["access_token"]
 
     async def _async_api_request(self, method: str, path: str, **kwargs):
         headers = kwargs.pop("headers", {})
@@ -460,7 +450,8 @@ class RemehaHomeOAuth2Implementation(AbstractOAuth2Implementation):
             # Parse the callback url for the authorization code
             parsed_callback_url = urllib.parse.urlparse(response.headers["location"])
             query_string_dict = urllib.parse.parse_qs(parsed_callback_url.query)
-            authorization_code = query_string_dict["code"]
+            # parse_qs returns a list of values for each parameter
+            authorization_code = query_string_dict["code"][0]
 
             # Request a new token with the authorization code
             grant_params = {
@@ -496,10 +487,15 @@ class RemehaHomeOAuth2Implementation(AbstractOAuth2Implementation):
             #       problem has not been found, but this workaround allows you to reauthenticate at least. Otherwise
             #       Home Assitant would get stuck on refreshing the token forever.
             if response.status == 400:
-                response_json = await response.json()
+                # Usually JSON with an error_description, but not always
+                try:
+                    response_json = await response.json(content_type=None)
+                    description = response_json.get("error_description")
+                except (ValueError, AttributeError):
+                    description = None
                 _LOGGER.error(
                     "OAuth2 token request returned '400 Bad Request': %s",
-                    response_json["error_description"],
+                    description or "no error description",
                 )
                 raise ConfigEntryAuthFailed
 

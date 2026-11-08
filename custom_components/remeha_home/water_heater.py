@@ -65,11 +65,10 @@ async def async_setup_entry(
 
     entities = []
     for appliance in coordinator.data["appliances"]:
-        appliance_id = appliance["applianceId"]
         for hot_water_zone in appliance["hotWaterZones"]:
             hot_water_zone_id = hot_water_zone["hotWaterZoneId"]
             entities.append(
-                RemehaHomeWaterHeater(api, coordinator, appliance_id, hot_water_zone_id)
+                RemehaHomeWaterHeater(api, coordinator, hot_water_zone_id)
             )
 
     async_add_entities(entities)
@@ -95,13 +94,11 @@ class RemehaHomeWaterHeater(CoordinatorEntity, WaterHeaterEntity):
         self,
         api: RemehaHomeAPI,
         coordinator: RemehaHomeUpdateCoordinator,
-        appliance_id: str,
         hot_water_zone_id: str,
     ) -> None:
         """Create a DHW water heater entity."""
         super().__init__(coordinator)
         self.api = api
-        self.appliance_id = appliance_id
         self.hot_water_zone_id = hot_water_zone_id
         self._attr_unique_id = "_".join([DOMAIN, self.hot_water_zone_id, "water_heater"])
 
@@ -227,23 +224,28 @@ class RemehaHomeWaterHeater(CoordinatorEntity, WaterHeaterEntity):
 
         setpoint_type = self._current_setpoint_type()
         if setpoint_type == "comfort":
-            # Optimistic local update to avoid transient UI mismatches
-            self._data["comfortSetPoint"] = temperature
-            self._data["targetSetpoint"] = temperature
-            await self.api.async_set_dhw_comfort_setpoint(
-                self.hot_water_zone_id, temperature
-            )
+            setpoint_key = "comfortSetPoint"
+            set_setpoint = self.api.async_set_dhw_comfort_setpoint
         else:
             if not supports_reduced_setpoint(self._data):
                 raise ServiceValidationError(
                     translation_domain=DOMAIN,
                     translation_key="eco_setpoint_requires_tank",
                 )
-            self._data["reducedSetpoint"] = temperature
-            self._data["targetSetpoint"] = temperature
-            await self.api.async_set_dhw_reduced_setpoint(
-                self.hot_water_zone_id, temperature
-            )
+            setpoint_key = "reducedSetpoint"
+            set_setpoint = self.api.async_set_dhw_reduced_setpoint
+
+        # Optimistic local update to avoid transient UI mismatches, undone when the
+        # API refuses the new temperature
+        data = self._data
+        previous = {key: data.get(key) for key in (setpoint_key, "targetSetpoint")}
+        data[setpoint_key] = temperature
+        data["targetSetpoint"] = temperature
+        try:
+            await set_setpoint(self.hot_water_zone_id, temperature)
+        except Exception:
+            data.update(previous)
+            raise
 
         self.async_write_ha_state()
         await self.coordinator.async_request_refresh()
