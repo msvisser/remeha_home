@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import base64
-from datetime import date, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 import hashlib
 import json
 import logging
@@ -120,14 +120,22 @@ class RemehaHomeAPI:
         )
         response.raise_for_status()
 
-    async def async_set_temporary_override(self, climate_zone_id: str, setpoint: float):
-        """Set a temporary temperature override for the current schedule in a climate zone."""
+    async def async_set_temporary_override(
+        self, climate_zone_id: str, setpoint: float, end_time: datetime | None = None
+    ):
+        """Set a temporary temperature override for the current schedule in a climate zone.
+
+        Without an end time the override lasts until the next switch of the clock
+        program. With an end time the appliance ends it at that time by itself. The end
+        time is sent in UTC, like the API reports temporaryOverride.endTime.
+        """
+        payload: dict = {"roomTemperatureSetPoint": setpoint}
+        if end_time is not None:
+            payload["endTime"] = end_time.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
         response = await self._async_api_request(
             "POST",
             f"/climate-zones/{climate_zone_id}/modes/temporary-override",
-            json={
-                "roomTemperatureSetPoint": setpoint,
-            },
+            json=payload,
         )
         response.raise_for_status()
 
