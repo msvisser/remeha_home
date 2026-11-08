@@ -464,6 +464,11 @@ The appliance ends it by itself at that time and returns to the clock program.
 ```
 Measured on a Remeha Elga Ace on 2026-11-08: the zone was in `Scheduling`, the override was sent at 11:12 UTC with the end time above, and `temporaryOverride.endTime` showed exactly that time.
 At 11:22:20 UTC the zone was back in `Scheduling` with the setpoint of the clock program, and 30 seconds later `temporaryOverride.endTime` was back to the year 1.
+
+An override with an `endTime` lasts past a switch of the clock program.
+Measured on the same appliance: an override sent at 15:52 UTC until 16:50 UTC was still active after the switch at 16:20 UTC, with the same end time, and ended at 16:50 UTC.
+In another test, changing the zone in the Remeha Home app during the override moved `temporaryOverride.endTime` to the next switch of the clock program.
+After a change of the clock program, `nextSwitchTime` of the zone showed the new switch only some minutes later.
 The `endTime` field was first described in the [community documentation of the De Dietrich API](https://github.com/SimoneAvogadro/De-Dietrich-API/blob/master/docs/05-quick-start.md).
 
 ### Manual mode
