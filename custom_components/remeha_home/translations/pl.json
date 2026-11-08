@@ -105,6 +105,9 @@
         },
         "temperature_out_of_range": {
             "message": "{temperature} °C jest poza zakresem strefy (od {min_temp} do {max_temp} °C)."
+        },
+        "heating_curve_unavailable": {
+            "message": "Krzywej grzewczej nie można teraz zmienić, ponieważ Remeha nie przekazała jej wartości ani limitów. Spróbuj ponownie po następnej aktualizacji."
         }
     },
     "services": {

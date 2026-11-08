@@ -7,6 +7,7 @@ from homeassistant.components.number import NumberDeviceClass, NumberEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory, PRECISION_HALVES, UnitOfTemperature
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -227,42 +228,55 @@ class RemehaHomeHeatingCurveNumber(CoordinatorEntity, NumberEntity):
         """Return the heating curve data from the coordinator."""
         return self.coordinator.get_heating_curve(self.climate_zone_id)
 
+    def _number(self, key: str) -> float | None:
+        """Return a number from the heating curve data, None when it is missing."""
+        value = (self._heating_curve_data or {}).get(key)
+        if isinstance(value, bool) or not isinstance(value, int | float):
+            return None
+        return value
+
     @property
     def available(self) -> bool:
-        """Return True if entity is available."""
-        return super().available and self._heating_curve_data is not None
+        """Return True if entity is available.
+
+        A change sends both the slope and the base setpoint, and Home Assistant needs
+        the limits to check the new value. Without all of them, the entity is
+        unavailable instead of guessing limits that the appliance might reject.
+        """
+        keys = (
+            "slope",
+            "baseSetpoint",
+            self._param_config["min_key"],
+            self._param_config["max_key"],
+            self._param_config["step_key"],
+        )
+        return super().available and all(
+            self._number(key) is not None for key in keys
+        )
 
     @property
     def native_value(self) -> float | None:
         """Return the current value."""
-        data = self._heating_curve_data
-        if data is None:
-            return None
-        return data.get(self._param_config["value_key"])
+        return self._number(self._param_config["value_key"])
 
+    # The fallbacks below are only used while the entity is unavailable
     @property
     def native_min_value(self) -> float:
         """Return the minimum value."""
-        data = self._heating_curve_data
-        if data is None:
-            return 0.0
-        return data.get(self._param_config["min_key"], 0.0)
+        value = self._number(self._param_config["min_key"])
+        return 0.0 if value is None else value
 
     @property
     def native_max_value(self) -> float:
         """Return the maximum value."""
-        data = self._heating_curve_data
-        if data is None:
-            return 100.0
-        return data.get(self._param_config["max_key"], 100.0)
+        value = self._number(self._param_config["max_key"])
+        return 100.0 if value is None else value
 
     @property
     def native_step(self) -> float:
         """Return the step value."""
-        data = self._heating_curve_data
-        if data is None:
-            return 0.1
-        return data.get(self._param_config["step_key"], 0.1)
+        value = self._number(self._param_config["step_key"])
+        return 0.1 if value is None else value
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -271,9 +285,14 @@ class RemehaHomeHeatingCurveNumber(CoordinatorEntity, NumberEntity):
 
     async def async_set_native_value(self, value: float) -> None:
         """Set the heating curve parameter value."""
+        if not self.available:
+            # Home Assistant doesn't call an unavailable entity, but the data can
+            # change in between
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="heating_curve_unavailable",
+            )
         data = self._heating_curve_data
-        if data is None:
-            return
 
         # Avoid floating point artifacts such as 1.2000000000000002 from the UI step
         value = round(value, 2)
