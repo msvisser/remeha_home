@@ -96,6 +96,15 @@
         },
         "holiday_request_rejected": {
             "message": "Remeha Home heeft het vakantiemodus-verzoek geweigerd ({status}): {message}"
+        },
+        "temporary_override_not_supported": {
+            "message": "{entity_id} ondersteunt geen tijdelijke temperatuur met een eindtijd."
+        },
+        "temporary_override_requires_auto": {
+            "message": "Een tijdelijke temperatuur werkt alleen als {entity_id} het klokprogramma volgt. Zet de zone eerst op auto."
+        },
+        "temperature_out_of_range": {
+            "message": "{temperature} °C valt buiten het bereik van de zone ({min_temp} tot {max_temp} °C)."
         }
     },
     "services": {
@@ -132,6 +141,20 @@
                 "end_date": {
                     "name": "Einddatum",
                     "description": "Laatste kalenderdag (inclusief)."
+                }
+            }
+        },
+        "set_temporary_override": {
+            "name": "Tijdelijke temperatuur instellen",
+            "description": "Vervang het klokprogramma van de zone een tijdje door een andere temperatuur. Daarna gaat het toestel zelf terug naar het klokprogramma, ook als Home Assistant niet draait. De zone moet in de stand auto staan.",
+            "fields": {
+                "temperature": {
+                    "name": "Temperatuur",
+                    "description": "Temperatuur die tijdens de override wordt aangehouden."
+                },
+                "duration": {
+                    "name": "Duur",
+                    "description": "Hoe lang de temperatuur wordt aangehouden, van 1 minuut tot 7 dagen."
                 }
             }
         }

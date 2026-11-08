@@ -1,8 +1,11 @@
 """Platform for Remeha Home climate integration."""
 
 from __future__ import annotations
+from datetime import timedelta
 from typing import Any
 import logging
+
+import voluptuous as vol
 
 from homeassistant.components.climate import (
     ATTR_HVAC_MODE,
@@ -15,6 +18,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_TEMPERATURE, PRECISION_HALVES, UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
+from homeassistant.helpers import config_validation as cv, entity_platform
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -26,6 +30,12 @@ from .coordinator import RemehaHomeUpdateCoordinator
 from .util import remeha_utc_time
 
 _LOGGER = logging.getLogger(__name__)
+
+SERVICE_SET_TEMPORARY_OVERRIDE = "set_temporary_override"
+ATTR_DURATION = "duration"
+# The Remeha API doesn't document a limit; one week is a reasonable maximum
+MIN_OVERRIDE_DURATION = timedelta(minutes=1)
+MAX_OVERRIDE_DURATION = timedelta(days=7)
 
 
 def get_remeha_mode_to_hvac_mode(appliance_type: str) -> dict:
@@ -101,6 +111,19 @@ async def async_setup_entry(
     """Set up the Remeha Home climate entity from a config entry."""
     api = hass.data[DOMAIN][entry.entry_id]["api"]
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
+
+    platform = entity_platform.async_get_current_platform()
+    platform.async_register_entity_service(
+        SERVICE_SET_TEMPORARY_OVERRIDE,
+        {
+            vol.Required(ATTR_TEMPERATURE): vol.Coerce(float),
+            vol.Required(ATTR_DURATION): vol.All(
+                cv.time_period,
+                vol.Range(min=MIN_OVERRIDE_DURATION, max=MAX_OVERRIDE_DURATION),
+            ),
+        },
+        "async_set_temporary_override",
+    )
 
     entities = []
     for appliance in coordinator.data["appliances"]:
@@ -288,6 +311,44 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
         else:
             raise NotImplementedError()
 
+        await self.coordinator.async_request_refresh()
+
+    async def async_set_temporary_override(
+        self, temperature: float, duration: timedelta
+    ) -> None:
+        """Override the clock program with a temperature for a while.
+
+        The appliance ends the override by itself at the end time, also when Home
+        Assistant isn't running, and returns to the clock program.
+        """
+        if self._data.get("capabilityTemporaryOverrideEndTime") is not True:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="temporary_override_not_supported",
+                translation_placeholders={"entity_id": self.entity_id},
+            )
+        if self.hvac_mode != HVACMode.AUTO:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="temporary_override_requires_auto",
+                translation_placeholders={"entity_id": self.entity_id},
+            )
+        if not self.min_temp <= temperature <= self.max_temp:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="temperature_out_of_range",
+                translation_placeholders={
+                    "temperature": str(temperature),
+                    "min_temp": str(self.min_temp),
+                    "max_temp": str(self.max_temp),
+                },
+            )
+
+        end_time = (dt_util.utcnow() + duration).replace(microsecond=0)
+        _LOGGER.debug("Setting temperature to %f until %s", temperature, end_time)
+        await self.api.async_set_temporary_override(
+            self.climate_zone_id, temperature, end_time
+        )
         await self.coordinator.async_request_refresh()
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:

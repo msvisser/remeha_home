@@ -35,6 +35,7 @@ You can simply log in using the credentials that you would use in the respective
     - Three presets for the three clock programs available in the Remeha Home app.
     When a preset is selected, the integration will automatically switch the climate zone to auto mode to make sure the preset is applied.
     In heat (or heat/cool) mode the preset shows Manual, in off mode Frost protection.
+    - An action to hold another temperature for a while, after which the zone returns to its clock program. See [Temporary temperature](#temporary-temperature).
 - Each climate zone also exposes the following sensors/switches/numbers:
     - The room temperature
     - The status (e.g. heating or idle), plus a binary status sensor (disabled by default)
@@ -136,6 +137,28 @@ Remove it in HACS first, then download this version: HACS can't track two reposi
 1. Enter your email address and password
 1. Click "Next"
 1. Enjoy
+
+## Temporary temperature
+Like in the Remeha Home app, you can hold another temperature for a while, for example 21 °C for an hour and a half.
+The `remeha_home.set_temporary_override` action sets the temperature with an end time on the appliance.
+At the end time the appliance returns to the clock program by itself, also when Home Assistant isn't running.
+
+```yaml
+action: remeha_home.set_temporary_override
+target:
+  entity_id: climate.living_room
+data:
+  temperature: 21
+  duration: "01:30:00"
+```
+
+- The `duration` is from 1 minute up to 7 days.
+- The zone must be in auto mode, so following its clock program. In heat or off mode the action asks you to set the zone to auto first.
+- During the override the thermostat shows auto, and the end time is in the Override End sensor and the `override_end_time` attribute.
+- Running the action again replaces the override. To stop it early, set the zone to heat or off.
+- The action needs a zone that reports support for an end time (`capabilityTemporaryOverrideEndTime`). Otherwise it shows an error.
+
+Changing the target temperature in auto mode, for example on the thermostat card, still overrides the clock program until its next switch, as before.
 
 ## Holiday mode
 Like in the Remeha Home app, you can schedule a holiday period. During the holiday, the appliance sets the climate zones to frost protection and turns the hot water off.

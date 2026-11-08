@@ -418,7 +418,7 @@ The integration saves the modes when a holiday starts, and sets them again when 
 | Request | Body | Effect |
 |---|---|---|
 | `POST /climate-zones/{climate_zone_id}/modes/schedule` | `heatingProgramId` | Follow the clock program |
-| `POST /climate-zones/{climate_zone_id}/modes/temporary-override` | `roomTemperatureSetPoint` | Override the clock program until its next switch |
+| `POST /climate-zones/{climate_zone_id}/modes/temporary-override` | `roomTemperatureSetPoint`, optional `endTime` | Override the clock program until its next switch, or until `endTime` |
 | `POST /climate-zones/{climate_zone_id}/modes/manual` | `roomTemperatureSetPoint` | Hold a fixed temperature |
 | `POST /climate-zones/{climate_zone_id}/modes/anti-frost` | none | Frost protection (off) |
 | `POST /climate-zones/{climate_zone_id}/time-programs/heating/{time_program_id}/activate` | none | Select clock program 1 to 3 |
@@ -453,6 +453,18 @@ The end of the override is in `temporaryOverride.endTime`, in UTC (see [Times](#
   "roomTemperatureSetPoint": 20.0
 }
 ```
+
+When the zone reports `capabilityTemporaryOverrideEndTime: true`, an optional `endTime` in UTC sets the end of the override.
+The appliance ends it by itself at that time and returns to the clock program.
+```json
+{
+  "roomTemperatureSetPoint": 21.0,
+  "endTime": "2026-11-08T11:22:00Z"
+}
+```
+Measured on a Remeha Elga Ace on 2026-11-08: the zone was in `Scheduling`, the override was sent at 11:12 UTC with the end time above, and `temporaryOverride.endTime` showed exactly that time.
+At 11:22:20 UTC the zone was back in `Scheduling` with the setpoint of the clock program, and 30 seconds later `temporaryOverride.endTime` was back to the year 1.
+The `endTime` field was first described in the [community documentation of the De Dietrich API](https://github.com/SimoneAvogadro/De-Dietrich-API/blob/master/docs/05-quick-start.md).
 
 ### Manual mode
 ```http
