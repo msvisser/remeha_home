@@ -733,9 +733,12 @@ Each item has the totals of the appliance for heating, hot water and cooling (`â
 - A value is `null` when the producer doesn't report it, e.g. the energy delivered by a gas boiler, or hot water for a heat pump when the boiler heats the water.
 
 The appliance totals are not always the sum of the producers: the energy consumed is, but the energy delivered includes Remeha's estimate of the heat delivered by a gas boiler.
+On a hybrid system the energy consumed therefore adds the gas of the gas boiler (in kWh) to the electricity of the heat pump, so it is not the electricity use of the appliance.
 
 > [!NOTE]
 > On a hybrid system where the existing gas boiler heats the hot water, such as the Remeha Elga Ace, Remeha reports no gas for hot water: `energyConsumptionDHW` of the gas boiler stays 0.
+> Measured on an Elga Ace over 10 days against a gas meter, in 4-hour blocks: without hot water the gas for heating matched the meter, but in the blocks with hot water Remeha reported much less gas than the meter.
+> So most of the gas for hot water is missing; some of it may be reported as `energyConsumptionCH`, because Remeha reports gas in irregular blocks.
 
 #### Historical daily consumption
 
