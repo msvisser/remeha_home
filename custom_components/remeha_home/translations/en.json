@@ -96,6 +96,18 @@
         },
         "holiday_request_rejected": {
             "message": "Remeha Home rejected the holiday mode request ({status}): {message}"
+        },
+        "temporary_override_not_supported": {
+            "message": "{entity_id} doesn't support a temporary temperature with an end time."
+        },
+        "temporary_override_requires_auto": {
+            "message": "A temporary temperature only works while {entity_id} follows the clock program. Set the zone to auto first."
+        },
+        "temperature_out_of_range": {
+            "message": "{temperature} °C is outside the range of the zone ({min_temp} to {max_temp} °C)."
+        },
+        "heating_curve_unavailable": {
+            "message": "The heating curve can't be changed now, because Remeha didn't report its values or limits. Try again after the next update."
         }
     },
     "services": {
@@ -127,11 +139,25 @@
                 },
                 "start_date": {
                     "name": "Start date",
-                    "description": "First calendar day to retrieve (inclusive)."
+                    "description": "First calendar day to retrieve (inclusive), before today."
                 },
                 "end_date": {
                     "name": "End date",
-                    "description": "Last calendar day to retrieve (inclusive)."
+                    "description": "Last calendar day to retrieve (inclusive). Today isn't complete yet, so the period ends yesterday at the latest."
+                }
+            }
+        },
+        "set_temporary_override": {
+            "name": "Set temporary temperature",
+            "description": "Override the clock program of the zone with another temperature for a while. Afterwards the appliance returns to the clock program by itself, also when Home Assistant isn't running. The zone must be in auto mode.",
+            "fields": {
+                "temperature": {
+                    "name": "Temperature",
+                    "description": "Temperature to hold during the override."
+                },
+                "duration": {
+                    "name": "Duration",
+                    "description": "How long to hold the temperature, from 1 minute up to 7 days."
                 }
             }
         }

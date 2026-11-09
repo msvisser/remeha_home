@@ -1,4 +1,16 @@
 # Remeha Home integration for Home Assistant
+
+[![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2026.10%2B-41BDF5?logo=home-assistant&logoColor=white)](https://www.home-assistant.io/)
+[![HACS](https://img.shields.io/badge/HACS-Custom-41BDF5?logo=home-assistant-community-store&logoColor=white)](https://my.home-assistant.io/redirect/hacs_repository/?owner=hugo-leij&repository=remeha_home&category=integration)
+[![Latest release](https://img.shields.io/github/v/release/hugo-leij/remeha_home?label=Release&logo=github)](https://github.com/hugo-leij/remeha_home/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/hugo-leij/remeha_home/remeha_home.zip?label=Downloads&displayAssetName=false&logo=github)](https://github.com/hugo-leij/remeha_home/releases)
+[![Tests](https://img.shields.io/github/actions/workflow/status/hugo-leij/remeha_home/tests.yaml?branch=main&label=Tests&logo=github)](https://github.com/hugo-leij/remeha_home/actions/workflows/tests.yaml)
+[![Validate](https://img.shields.io/github/actions/workflow/status/hugo-leij/remeha_home/validate.yaml?branch=main&label=Validate&logo=github)](https://github.com/hugo-leij/remeha_home/actions/workflows/validate.yaml)
+
+<p align="center">
+  <img src="https://brands.home-assistant.io/remeha_home/logo.png" alt="Remeha Home" width="180">
+</p>
+
 This integration lets you control your Remeha Home thermostats from Home Assistant.
 
 This is a fork of [msvisser/remeha_home](https://github.com/msvisser/remeha_home), which is no longer actively maintained.
@@ -24,6 +36,7 @@ You can simply log in using the credentials that you would use in the respective
     - Three presets for the three clock programs available in the Remeha Home app.
     When a preset is selected, the integration will automatically switch the climate zone to auto mode to make sure the preset is applied.
     In heat (or heat/cool) mode the preset shows Manual, in off mode Frost protection.
+    - An action to hold another temperature for a while, after which the zone returns to its clock program. See [Temporary temperature](#temporary-temperature).
 - Each climate zone also exposes the following sensors/switches/numbers:
     - The room temperature
     - The status (e.g. heating or idle), plus a binary status sensor (disabled by default)
@@ -66,6 +79,10 @@ You can simply log in using the credentials that you would use in the respective
 
     The energy values come from Remeha and are updated every 15 minutes. Remeha only reports them with a delay of about 2 hours, and right after midnight the values of the new day start at 0.
     On hybrid setups where the existing gas boiler heats the hot water, such as the Remeha Elga Ace, Remeha does not report the gas used for hot water, so that sensor stays at 0.
+    Most of that gas is missing from the Remeha data, and some of it may show up as gas for heating.
+
+    On a hybrid system, the energy consumed by the appliance as a whole is the electricity of the heat pump plus the gas of the gas boiler, both in kWh.
+    For the [Energy dashboard](https://www.home-assistant.io/docs/energy/), use the sensors of the producers instead: the heat pump's energy consumed as electricity, and the gas boiler's gas in m³ as gas.
 
 ### Read-only energy history
 
@@ -80,6 +97,11 @@ data:
   start_date: "2026-01-01"
   end_date: "2026-01-31"
 ```
+
+Only whole days are returned. Remeha keeps adding to today's figures until
+midnight, so the period ends yesterday at the latest: an `end_date` of today or
+later is shortened to yesterday, and `end_date` in the response shows the last
+day that is included. A period that starts today or later is rejected.
 
 The response contains daily heat-pump electricity and delivered heat in kWh,
 daily indicative heating COP, gas heating energy in kWh, and an energy-weighted
@@ -122,6 +144,30 @@ Remove it in HACS first, then download this version: HACS can't track two reposi
 1. Click "Next"
 1. Enjoy
 
+## Temporary temperature
+Like in the Remeha Home app, you can hold another temperature for a while, for example 21 °C for an hour and a half.
+The `remeha_home.set_temporary_override` action sets the temperature with an end time on the appliance.
+At the end time the appliance returns to the clock program by itself, also when Home Assistant isn't running.
+
+```yaml
+action: remeha_home.set_temporary_override
+target:
+  entity_id: climate.living_room
+data:
+  temperature: 21
+  duration: "01:30:00"
+```
+
+- The `duration` is from 1 minute up to 7 days.
+- The override lasts until its end time, also past a switch of the clock program. For example, an override of an hour started at 16:50 ends at 17:50, also when the clock program switches at 17:20. After the end time the zone follows the clock program again.
+- Changing the zone in the Remeha Home app during the override can change its end time. On a Remeha Elga Ace the end time was moved to the next switch of the clock program.
+- The zone must be in auto mode, so following its clock program. In heat or off mode the action asks you to set the zone to auto first.
+- During the override the thermostat shows auto, and the end time is in the Override End sensor and the `override_end_time` attribute.
+- Running the action again replaces the override. To stop it early, set the zone to heat or off.
+- The action needs a zone that reports support for an end time (`capabilityTemporaryOverrideEndTime`). Otherwise it shows an error.
+
+Changing the target temperature in auto mode, for example on the thermostat card, still overrides the clock program until its next switch, as before.
+
 ## Holiday mode
 Like in the Remeha Home app, you can schedule a holiday period. During the holiday, the appliance sets the climate zones to frost protection and turns the hot water off.
 In Home Assistant the thermostats then show Off with the preset Frost protection, and the water heater shows Eco, the state it uses for hot water that is off.
@@ -147,6 +193,7 @@ So the integration sets the modes back itself:
 - A climate zone that followed its clock program is set to it once more, also when it already shows the clock program again, because it can still keep the frost protection setpoint.
 - A temporary change of the clock program, and a hot water boost, come back as the plain clock program and schedule.
 - A zone that is in another mode after the holiday keeps that mode, for example when you changed it yourself.
+  Off is the exception: off is frost protection, the same mode the holiday uses, so a zone that you set to off during the holiday is also set back. The same goes for hot water that you turned off. Turn it off again after the holiday if you want it to stay off.
 - It checks the result 15 seconds later, and tries up to three times. If the zones are still not back, it logs a warning.
 
 This works when you cancel the holiday in Home Assistant or in the Remeha Home app, and when the holiday ends by itself.

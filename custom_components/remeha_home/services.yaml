@@ -38,3 +38,24 @@ get_energy_history:
       example: "2026-01-31"
       selector:
         date:
+
+set_temporary_override:
+  target:
+    entity:
+      integration: remeha_home
+      domain: climate
+  fields:
+    temperature:
+      required: true
+      example: 21
+      selector:
+        number:
+          min: 5
+          max: 30
+          step: 0.5
+          unit_of_measurement: "°C"
+    duration:
+      required: true
+      example: "01:30:00"
+      selector:
+        duration:

@@ -96,6 +96,18 @@
         },
         "holiday_request_rejected": {
             "message": "Remeha Home odrzuciło żądanie trybu urlopowego ({status}): {message}"
+        },
+        "temporary_override_not_supported": {
+            "message": "{entity_id} nie obsługuje tymczasowej temperatury z czasem zakończenia."
+        },
+        "temporary_override_requires_auto": {
+            "message": "Tymczasowa temperatura działa tylko wtedy, gdy {entity_id} realizuje program czasowy. Najpierw ustaw strefę w trybie auto."
+        },
+        "temperature_out_of_range": {
+            "message": "{temperature} °C jest poza zakresem strefy (od {min_temp} do {max_temp} °C)."
+        },
+        "heating_curve_unavailable": {
+            "message": "Krzywej grzewczej nie można teraz zmienić, ponieważ Remeha nie przekazała jej wartości ani limitów. Spróbuj ponownie po następnej aktualizacji."
         }
     },
     "services": {
@@ -127,11 +139,25 @@
                 },
                 "start_date": {
                     "name": "Data początkowa",
-                    "description": "Pierwszy dzień kalendarzowy (włącznie)."
+                    "description": "Pierwszy dzień kalendarzowy do pobrania (włącznie), przed dzisiejszym dniem."
                 },
                 "end_date": {
                     "name": "Data końcowa",
-                    "description": "Ostatni dzień kalendarzowy (włącznie)."
+                    "description": "Ostatni dzień kalendarzowy do pobrania (włącznie). Dzisiejszy dzień nie jest jeszcze kompletny, więc okres kończy się najpóźniej wczoraj."
+                }
+            }
+        },
+        "set_temporary_override": {
+            "name": "Ustaw tymczasową temperaturę",
+            "description": "Zastępuje na pewien czas program czasowy strefy inną temperaturą. Potem urządzenie samo wraca do programu czasowego, także gdy Home Assistant nie działa. Strefa musi być w trybie auto.",
+            "fields": {
+                "temperature": {
+                    "name": "Temperatura",
+                    "description": "Temperatura utrzymywana podczas nadpisania."
+                },
+                "duration": {
+                    "name": "Czas trwania",
+                    "description": "Jak długo utrzymywać temperaturę, od 1 minuty do 7 dni."
                 }
             }
         }

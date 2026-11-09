@@ -326,8 +326,8 @@ async def test_action_rejects_wrong_device_and_dates(
             service,
             {
                 "device_id": "not-a-remeha-device",
-                "start_date": "2026-01-01",
-                "end_date": "2027-01-02",
+                "start_date": "2024-01-01",
+                "end_date": "2025-01-02",
             },
             blocking=True,
             return_response=True,
@@ -492,3 +492,64 @@ def test_period_without_any_reported_days_has_unknown_totals() -> None:
     assert result["period"]["heat_pump_heating_delivered_kwh"] is None
     assert result["period"]["heat_pump_heating_cop"] is None
     assert result["period"]["gas_heating_consumed_kwh"] is None
+
+
+async def _history(hass: HomeAssistant, config_entry, start: str, end: str) -> dict:
+    """Run the action for the appliance."""
+    appliance = dr.async_get(hass).async_get_device_by_identifier(
+        (DOMAIN, APPLIANCE_ID), config_entry.entry_id
+    )
+    return await hass.services.async_call(
+        DOMAIN,
+        SERVICE_GET_ENERGY_HISTORY,
+        {"device_id": appliance.id, "start_date": start, "end_date": end},
+        blocking=True,
+        return_response=True,
+    )
+
+
+def _day(day: str) -> dict:
+    """Return a reported day of the hybrid with the given date."""
+    item = _january_9()
+    item["timeStamp"] = f"{day}T00:00:00+00:00"
+    return item
+
+
+@pytest.mark.parametrize("end", ["2026-11-09", "2026-11-10"])
+async def test_action_leaves_out_today(
+    hass: HomeAssistant, config_entry, mock_api, freezer, end
+) -> None:
+    """Today isn't complete yet, so the period ends yesterday.
+
+    The result is the same with today or a later day as the end date, also when
+    the API returns today's figures.
+    """
+    freezer.move_to("2026-11-09 12:00:00+00:00")
+    await setup_integration(hass, config_entry, mock_api)
+    mock_api.async_get_consumption_data_for_range.return_value = {
+        "data": [_day("2026-11-08"), _day("2026-11-09")]
+    }
+
+    result = await _history(hass, config_entry, "2026-11-08", end)
+
+    mock_api.async_get_consumption_data_for_range.assert_awaited_once_with(
+        APPLIANCE_ID, date(2026, 11, 8), date(2026, 11, 8)
+    )
+    assert result["end_date"] == "2026-11-08"
+    assert [day["date"] for day in result["days"]] == ["2026-11-08"]
+    assert result["period"]["days_requested"] == 1
+    assert result["period"]["complete"] is True
+
+
+@pytest.mark.parametrize("start", ["2026-11-09", "2026-11-10"])
+async def test_action_rejects_period_from_today(
+    hass: HomeAssistant, config_entry, mock_api, freezer, start
+) -> None:
+    """A period that starts today or later has no whole days."""
+    freezer.move_to("2026-11-09 12:00:00+00:00")
+    await setup_integration(hass, config_entry, mock_api)
+
+    with pytest.raises(HomeAssistantError, match="before today"):
+        await _history(hass, config_entry, start, "2026-11-10")
+
+    mock_api.async_get_consumption_data_for_range.assert_not_awaited()

@@ -96,6 +96,18 @@
         },
         "holiday_request_rejected": {
             "message": "Remeha Home a refusé la demande de mode vacances ({status}) : {message}"
+        },
+        "temporary_override_not_supported": {
+            "message": "{entity_id} ne prend pas en charge une température temporaire avec une heure de fin."
+        },
+        "temporary_override_requires_auto": {
+            "message": "Une température temporaire ne fonctionne que si {entity_id} suit le programme horaire. Passez d'abord la zone en mode auto."
+        },
+        "temperature_out_of_range": {
+            "message": "{temperature} °C est en dehors de la plage de la zone ({min_temp} à {max_temp} °C)."
+        },
+        "heating_curve_unavailable": {
+            "message": "La courbe de chauffe ne peut pas être modifiée maintenant, car Remeha n'a pas transmis ses valeurs ou ses limites. Réessayez après la prochaine mise à jour."
         }
     },
     "services": {
@@ -127,11 +139,25 @@
                 },
                 "start_date": {
                     "name": "Date de début",
-                    "description": "Premier jour civil inclus."
+                    "description": "Premier jour calendaire à récupérer (inclus), avant aujourd'hui."
                 },
                 "end_date": {
                     "name": "Date de fin",
-                    "description": "Dernier jour civil inclus."
+                    "description": "Dernier jour calendaire à récupérer (inclus). Aujourd'hui n'est pas encore complet, la période se termine donc au plus tard hier."
+                }
+            }
+        },
+        "set_temporary_override": {
+            "name": "Définir une température temporaire",
+            "description": "Remplace pendant un moment le programme horaire de la zone par une autre température. Ensuite, l'appareil revient de lui-même au programme horaire, même si Home Assistant ne fonctionne pas. La zone doit être en mode auto.",
+            "fields": {
+                "temperature": {
+                    "name": "Température",
+                    "description": "Température à maintenir pendant la dérogation."
+                },
+                "duration": {
+                    "name": "Durée",
+                    "description": "Durée pendant laquelle la température est maintenue, de 1 minute à 7 jours."
                 }
             }
         }
