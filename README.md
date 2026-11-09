@@ -30,7 +30,7 @@ You can simply log in using the credentials that you would use in the respective
         If the target temperature is changed, it will temporarily override the clock program until the next target temperature change in the schedule.
         - Heat mode: the thermostat will be set to manual mode and continuously hold the set temperature.
         For a zone that can cool this mode is shown as Heat/Cool, because Remeha uses the same manual mode for heating and cooling.
-        A heat pump that reports it can't cool shows Heat.
+        A zone can cool when it reports so (`capabilityCooling`) or has Cooling activities; any other zone shows Heat.
         - Off mode: the thermostat is set to frost protection.
         A temperature can't be set in this mode: change the mode first, or pass `hvac_mode` together with the temperature in `climate.set_temperature`.
     - Three presets for the three clock programs available in the Remeha Home app.

@@ -157,6 +157,8 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
         self.api = api
         self.coordinator: RemehaHomeUpdateCoordinator = coordinator
         self.climate_zone_id = climate_zone_id
+        # Whether the zone has a Cooling activity, None until the activities are known
+        self._has_cooling_activity: bool | None = None
 
         self._attr_unique_id = "_".join([DOMAIN, self.climate_zone_id])
 
@@ -189,17 +191,29 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
     def _can_cool(self) -> bool:
         """Return whether this climate zone can cool.
 
-        The zone and the appliance both report capabilityCooling; the zone's value
-        comes first. When neither reports it, a heat pump is assumed to cool.
-        """
-        can_cool = self._data.get("capabilityCooling")
-        if can_cool is not None:
-            return bool(can_cool)
+        A zone can cool when it reports capabilityCooling true (the zone's value
+        first, else the appliance's) or when it has a Cooling activity: a system that
+        cools can still report capabilityCooling false, but it has Cooling activities.
 
+        The activities are fetched once and again after an activity is changed, so
+        they can be missing for a moment; the last result is kept meanwhile, so the
+        modes don't flip. Before they have ever been fetched, a heat pump is assumed
+        to cool.
+        """
         appliance_data = self._get_appliance_data() or {}
-        can_cool = appliance_data.get("capabilityCooling")
-        if can_cool is not None:
-            return bool(can_cool)
+        capability = self._data.get("capabilityCooling")
+        if capability is None:
+            capability = appliance_data.get("capabilityCooling")
+        if capability:
+            return True
+
+        activities = self.coordinator.get_activities(self.climate_zone_id)
+        if activities is not None:
+            self._has_cooling_activity = any(
+                activity.get("type") == "Cooling" for activity in activities
+            )
+        if self._has_cooling_activity is not None:
+            return self._has_cooling_activity
 
         return appliance_data.get("applianceType") == "HeatPump"
 
