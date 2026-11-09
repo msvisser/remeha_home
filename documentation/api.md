@@ -764,6 +764,12 @@ The opt-in `remeha_home.get_energy_history` action reuses the read-only
 `startDate` and `endDate` are **inclusive local calendar days**. Requests
 span at most 366 days and are split into 31-day API batches.
 
+The API also returns today, with the figures so far, so a request that ended
+today returned a partial day as if it were complete, and one that ended tomorrow
+did not. The action therefore only uses whole days: it shortens an `end_date` of
+today or later to yesterday before it calls the API, and rejects a period that
+starts today or later.
+
 The API's `timeStamp` for a historical record represents a **local calendar
 date**, despite the UTC-looking `Z` suffix. The action therefore returns
 `date` only, never a misleading UTC instant. Dates are not shifted across

@@ -136,11 +136,11 @@
                 },
                 "start_date": {
                     "name": "Date de début",
-                    "description": "Premier jour civil inclus."
+                    "description": "Premier jour calendaire à récupérer (inclus), avant aujourd'hui."
                 },
                 "end_date": {
                     "name": "Date de fin",
-                    "description": "Dernier jour civil inclus."
+                    "description": "Dernier jour calendaire à récupérer (inclus). Aujourd'hui n'est pas encore complet, la période se termine donc au plus tard hier."
                 }
             }
         },

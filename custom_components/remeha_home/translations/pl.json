@@ -136,11 +136,11 @@
                 },
                 "start_date": {
                     "name": "Data początkowa",
-                    "description": "Pierwszy dzień kalendarzowy (włącznie)."
+                    "description": "Pierwszy dzień kalendarzowy do pobrania (włącznie), przed dzisiejszym dniem."
                 },
                 "end_date": {
                     "name": "Data końcowa",
-                    "description": "Ostatni dzień kalendarzowy (włącznie)."
+                    "description": "Ostatni dzień kalendarzowy do pobrania (włącznie). Dzisiejszy dzień nie jest jeszcze kompletny, więc okres kończy się najpóźniej wczoraj."
                 }
             }
         },
