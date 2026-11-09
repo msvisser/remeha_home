@@ -48,6 +48,10 @@ PRESET_MODE_TO_PRESET_INDEX = {
     "clock_program_3": 3,
 }
 
+# The presets shown in heat (or heat/cool) mode and in off mode
+PRESET_MANUAL = "manual"
+PRESET_ANTI_FROST = "anti_frost"
+
 APPLIANCE_SENSOR_TYPES = [
     SensorEntityDescription(
         key="waterPressure",

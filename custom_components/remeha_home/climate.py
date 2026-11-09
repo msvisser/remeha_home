@@ -25,7 +25,13 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 import homeassistant.util.dt as dt_util
 
 from .api import RemehaHomeAPI
-from .const import DOMAIN, PRESET_INDEX_TO_PRESET_MODE, PRESET_MODE_TO_PRESET_INDEX
+from .const import (
+    DOMAIN,
+    PRESET_ANTI_FROST,
+    PRESET_INDEX_TO_PRESET_MODE,
+    PRESET_MANUAL,
+    PRESET_MODE_TO_PRESET_INDEX,
+)
 from .coordinator import RemehaHomeUpdateCoordinator
 from .util import remeha_utc_time
 
@@ -267,17 +273,21 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
     def preset_mode(self) -> str | None:
         """Return the preset mode."""
         if self.hvac_mode == HVACMode.OFF:
-            return "anti_frost"
+            return PRESET_ANTI_FROST
         if self.hvac_mode in (HVACMode.HEAT, HVACMode.HEAT_COOL):
-            return "manual"
+            return PRESET_MANUAL
         return PRESET_INDEX_TO_PRESET_MODE[
             self._data["activeHeatingClimateTimeProgramNumber"]
         ]
 
     @property
     def preset_modes(self) -> list[str]:
-        """Return the list of available presets."""
-        return list(PRESET_INDEX_TO_PRESET_MODE.values())
+        """Return the list of available presets: the clock programs, manual and off."""
+        return [
+            *PRESET_INDEX_TO_PRESET_MODE.values(),
+            PRESET_MANUAL,
+            PRESET_ANTI_FROST,
+        ]
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
         """Set new target temperature, optionally together with a new operation mode."""
@@ -392,6 +402,14 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set new preset mode."""
         _LOGGER.debug("Setting preset mode to %s", preset_mode)
+
+        # Manual and frost protection are the heat (or heat/cool) and off modes
+        if preset_mode == PRESET_MANUAL:
+            await self.async_set_hvac_mode(manual_hvac_mode(self._can_cool()))
+            return
+        if preset_mode == PRESET_ANTI_FROST:
+            await self.async_set_hvac_mode(HVACMode.OFF)
+            return
 
         if preset_mode not in PRESET_MODE_TO_PRESET_INDEX:
             _LOGGER.error("Trying to set unknown preset mode %s", preset_mode)

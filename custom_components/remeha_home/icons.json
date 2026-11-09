@@ -1,0 +1,21 @@
+{
+  "entity": {
+    "climate": {
+      "remeha_home": {
+        "default": "mdi:thermostat",
+        "state_attributes": {
+          "preset_mode": {
+            "default": "mdi:calendar-clock",
+            "state": {
+              "clock_program_1": "mdi:numeric-1-box-outline",
+              "clock_program_2": "mdi:numeric-2-box-outline",
+              "clock_program_3": "mdi:numeric-3-box-outline",
+              "manual": "mdi:hand-back-right-outline",
+              "anti_frost": "mdi:snowflake-thermometer"
+            }
+          }
+        }
+      }
+    }
+  }
+}
