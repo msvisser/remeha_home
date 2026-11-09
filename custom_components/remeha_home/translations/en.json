@@ -105,6 +105,9 @@
         },
         "temperature_out_of_range": {
             "message": "{temperature} °C is outside the range of the zone ({min_temp} to {max_temp} °C)."
+        },
+        "heating_curve_unavailable": {
+            "message": "The heating curve can't be changed now, because Remeha didn't report its values or limits. Try again after the next update."
         }
     },
     "services": {

@@ -105,6 +105,9 @@
         },
         "temperature_out_of_range": {
             "message": "{temperature} °C valt buiten het bereik van de zone ({min_temp} tot {max_temp} °C)."
+        },
+        "heating_curve_unavailable": {
+            "message": "De stooklijn kan nu niet worden gewijzigd, omdat Remeha de waarden of grenzen niet heeft doorgegeven. Probeer het na de volgende update opnieuw."
         }
     },
     "services": {

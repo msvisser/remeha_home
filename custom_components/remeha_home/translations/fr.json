@@ -105,6 +105,9 @@
         },
         "temperature_out_of_range": {
             "message": "{temperature} °C est en dehors de la plage de la zone ({min_temp} à {max_temp} °C)."
+        },
+        "heating_curve_unavailable": {
+            "message": "La courbe de chauffe ne peut pas être modifiée maintenant, car Remeha n'a pas transmis ses valeurs ou ses limites. Réessayez après la prochaine mise à jour."
         }
     },
     "services": {

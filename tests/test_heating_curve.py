@@ -10,6 +10,7 @@ from aiohttp import ClientResponseError
 import pytest
 from homeassistant.const import STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 
 from .conftest import CLIMATE_ZONE_ID, entity_id, load_fixture, refresh, setup_integration
 
@@ -130,3 +131,70 @@ async def test_set_value(
     mock_api.async_set_heating_curve.assert_called_once_with(CLIMATE_ZONE_ID, *expected)
     assert mock_api.async_get_heating_curve.call_count == calls_before + 1
     assert number(hass, SLOPE).state != STATE_UNAVAILABLE
+
+
+@pytest.mark.parametrize(
+    ("missing", "unavailable", "available"),
+    [
+        ("maximumSlope", SLOPE, BASE_SETPOINT),
+        ("minimumSlope", SLOPE, BASE_SETPOINT),
+        ("incrementSlope", SLOPE, BASE_SETPOINT),
+        ("maximumBaseSetpoint", BASE_SETPOINT, SLOPE),
+    ],
+)
+@pytest.mark.parametrize("how", ["absent", "null"])
+async def test_missing_limit(
+    hass: HomeAssistant, config_entry, mock_api, missing, unavailable, available, how
+) -> None:
+    """Without its limits a number is unavailable instead of guessing them."""
+    curve = load_fixture("heating_curve.json")
+    if how == "absent":
+        del curve[missing]
+    else:
+        curve[missing] = None
+    mock_api.async_get_heating_curve.return_value = curve
+    await setup_integration(hass, config_entry, mock_api)
+
+    assert number(hass, unavailable).state == STATE_UNAVAILABLE
+    assert number(hass, available).state != STATE_UNAVAILABLE
+
+
+@pytest.mark.parametrize("missing", ["slope", "baseSetpoint"])
+async def test_missing_value(
+    hass: HomeAssistant, config_entry, mock_api, missing
+) -> None:
+    """A change sends both values, so both numbers need both values."""
+    curve = load_fixture("heating_curve.json")
+    del curve[missing]
+    mock_api.async_get_heating_curve.return_value = curve
+    await setup_integration(hass, config_entry, mock_api)
+
+    for key in (SLOPE, BASE_SETPOINT):
+        state = number(hass, key)
+        assert state.state == STATE_UNAVAILABLE
+
+        await hass.services.async_call(
+            "number",
+            "set_value",
+            {"entity_id": state.entity_id, "value": 1.0},
+            blocking=True,
+        )
+
+    mock_api.async_set_heating_curve.assert_not_called()
+
+
+async def test_limits_disappear_before_the_change(
+    hass: HomeAssistant, config_entry, mock_api
+) -> None:
+    """A change is refused when the limits are gone by the time it runs."""
+    await setup_integration(hass, config_entry, mock_api)
+    slope = hass.data["entity_components"]["number"].get_entity(
+        entity_id(hass, "number", CLIMATE_ZONE_ID, SLOPE)
+    )
+    del slope._heating_curve_data["maximumSlope"]
+
+    with pytest.raises(HomeAssistantError) as error:
+        await slope.async_set_native_value(1.0)
+
+    assert error.value.translation_key == "heating_curve_unavailable"
+    mock_api.async_set_heating_curve.assert_not_called()
