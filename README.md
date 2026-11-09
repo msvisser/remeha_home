@@ -33,8 +33,9 @@ You can simply log in using the credentials that you would use in the respective
         A zone can cool when it reports so (`capabilityCooling`) or has Cooling activities; any other zone shows Heat.
         - Off mode: the thermostat is set to frost protection.
         A temperature can't be set in this mode: change the mode first, or pass `hvac_mode` together with the temperature in `climate.set_temperature`.
-    - Three presets for the three clock programs available in the Remeha Home app.
-    When a preset is selected, the integration will automatically switch the climate zone to auto mode to make sure the preset is applied.
+    - Presets for the three clock programs available in the Remeha Home app (Schedule 1 to 3), and for Manual and Frost protection.
+    When a clock program is selected, the integration will automatically switch the climate zone to auto mode to make sure the preset is applied.
+    Manual is the same as heat (or heat/cool) mode, with the current target temperature, and Frost protection is the same as off mode.
     In heat (or heat/cool) mode the preset shows Manual, in off mode Frost protection.
     - An action to hold another temperature for a while, after which the zone returns to its clock program. See [Temporary temperature](#temporary-temperature).
 - Each climate zone also exposes the following sensors/switches/numbers:

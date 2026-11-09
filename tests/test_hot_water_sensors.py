@@ -81,10 +81,12 @@ async def test_clock_program(
     climate = er.async_get(hass).async_get_entity_id(
         "climate", DOMAIN, f"{DOMAIN}_{CLIMATE_ZONE_ID}"
     )
-    assert (
-        state.attributes["options"]
-        == hass.states.get(climate).attributes["preset_modes"]
-    )
+    # The clock programs have the same names as the clock program presets
+    assert state.attributes["options"] == [
+        preset
+        for preset in hass.states.get(climate).attributes["preset_modes"]
+        if preset.startswith("clock_program_")
+    ]
     entry = er.async_get(hass).async_get(
         entity_id(hass, "sensor", HOT_WATER_ZONE_ID, CLOCK_PROGRAM)
     )
