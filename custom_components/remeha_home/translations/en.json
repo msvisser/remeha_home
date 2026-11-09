@@ -139,11 +139,11 @@
                 },
                 "start_date": {
                     "name": "Start date",
-                    "description": "First calendar day to retrieve (inclusive)."
+                    "description": "First calendar day to retrieve (inclusive), before today."
                 },
                 "end_date": {
                     "name": "End date",
-                    "description": "Last calendar day to retrieve (inclusive)."
+                    "description": "Last calendar day to retrieve (inclusive). Today isn't complete yet, so the period ends yesterday at the latest."
                 }
             }
         },

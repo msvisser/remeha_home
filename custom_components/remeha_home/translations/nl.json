@@ -139,11 +139,11 @@
                 },
                 "start_date": {
                     "name": "Begindatum",
-                    "description": "Eerste kalenderdag (inclusief)."
+                    "description": "Eerste kalenderdag (inclusief), vóór vandaag."
                 },
                 "end_date": {
                     "name": "Einddatum",
-                    "description": "Laatste kalenderdag (inclusief)."
+                    "description": "Laatste kalenderdag (inclusief). Vandaag is nog niet compleet, dus de periode eindigt uiterlijk gisteren."
                 }
             }
         },

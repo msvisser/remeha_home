@@ -97,6 +97,11 @@ data:
   end_date: "2026-01-31"
 ```
 
+Only whole days are returned. Remeha keeps adding to today's figures until
+midnight, so the period ends yesterday at the latest: an `end_date` of today or
+later is shortened to yesterday, and `end_date` in the response shows the last
+day that is included. A period that starts today or later is rejected.
+
 The response contains daily heat-pump electricity and delivered heat in kWh,
 daily indicative heating COP, gas heating energy in kWh, and an energy-weighted
 COP over reported days. A flag indicates whether the requested period is
@@ -187,6 +192,7 @@ So the integration sets the modes back itself:
 - A climate zone that followed its clock program is set to it once more, also when it already shows the clock program again, because it can still keep the frost protection setpoint.
 - A temporary change of the clock program, and a hot water boost, come back as the plain clock program and schedule.
 - A zone that is in another mode after the holiday keeps that mode, for example when you changed it yourself.
+  Off is the exception: off is frost protection, the same mode the holiday uses, so a zone that you set to off during the holiday is also set back. The same goes for hot water that you turned off. Turn it off again after the holiday if you want it to stay off.
 - It checks the result 15 seconds later, and tries up to three times. If the zones are still not back, it logs a warning.
 
 This works when you cancel the holiday in Home Assistant or in the Remeha Home app, and when the holiday ends by itself.
