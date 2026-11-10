@@ -1,7 +1,7 @@
 """Platform for Remeha Home climate integration."""
 
 from __future__ import annotations
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import Any
 import logging
 
@@ -16,11 +16,12 @@ from homeassistant.components.climate import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_TEMPERATURE, PRECISION_HALVES, UnitOfTemperature
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv, entity_platform
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 import homeassistant.util.dt as dt_util
 
@@ -42,6 +43,9 @@ ATTR_DURATION = "duration"
 # The Remeha API doesn't document a limit; one week is a reasonable maximum
 MIN_OVERRIDE_DURATION = timedelta(minutes=1)
 MAX_OVERRIDE_DURATION = timedelta(days=7)
+# Right after a change the API can still answer with the old values, so the data is
+# requested again after this many seconds
+REFRESH_DELAY = 15
 
 
 def manual_hvac_mode(can_cool: bool) -> HVACMode:
@@ -167,6 +171,32 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
         self._has_cooling_activity: bool | None = None
 
         self._attr_unique_id = "_".join([DOMAIN, self.climate_zone_id])
+        self._refresh_later = None
+
+    async def async_will_remove_from_hass(self) -> None:
+        """Cancel a pending refresh."""
+        if self._refresh_later is not None:
+            self._refresh_later()
+            self._refresh_later = None
+        await super().async_will_remove_from_hass()
+
+    async def _async_refresh_soon(self) -> None:
+        """Refresh now, and again once the appliance has applied the change.
+
+        The read right after a change can still answer with the old values, for
+        example the setpoint of the clock program the zone left.
+        """
+        await self.coordinator.async_request_refresh()
+
+        if self._refresh_later is not None:
+            self._refresh_later()
+
+        @callback
+        def _refresh(_now: datetime) -> None:
+            self._refresh_later = None
+            self.hass.async_create_task(self.coordinator.async_request_refresh())
+
+        self._refresh_later = async_call_later(self.hass, REFRESH_DELAY, _refresh)
 
     @property
     def _data(self) -> dict:
@@ -326,7 +356,7 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
         else:
             raise NotImplementedError()
 
-        await self.coordinator.async_request_refresh()
+        await self._async_refresh_soon()
 
     async def async_set_temporary_override(
         self, temperature: float, duration: timedelta
@@ -364,7 +394,7 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
         await self.api.async_set_temporary_override(
             self.climate_zone_id, temperature, end_time
         )
-        await self.coordinator.async_request_refresh()
+        await self._async_refresh_soon()
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         """Set new operation mode."""
@@ -397,7 +427,7 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
             self.async_write_ha_state()
             raise
 
-        await self.coordinator.async_request_refresh()
+        await self._async_refresh_soon()
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set new preset mode."""
@@ -433,7 +463,8 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
             # Then select schedule mode for it, also when the zone already follows a
             # schedule: activating a program alone has left a zone on the setpoint of
             # the program it left, while its own schedule setpoint was the new one's.
-            # A running temporary override is left alone, as before.
+            # During a temporary override only the program is activated, as before;
+            # the appliance itself ends the override when the program changes.
             if previous_zone_mode != "TemporaryOverride":
                 await self.api.async_set_schedule(self.climate_zone_id, target_preset)
         except Exception:
@@ -444,4 +475,4 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
             self.async_write_ha_state()
             raise
 
-        await self.coordinator.async_request_refresh()
+        await self._async_refresh_soon()

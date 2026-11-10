@@ -94,6 +94,7 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
         self.heating_curve_last_update: dict[str, datetime] = {}
         self.heating_curve_unsupported: set[str] = set()
         self.activities_data: dict[str, list] = {}
+        self.activities_last_update: dict[str, datetime] = {}
         # Failed updates in a row, see _async_update_data
         self.failed_updates = 0
 
@@ -274,26 +275,7 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
                 )
                 self.items[climate_zone_id] = climate_zone
 
-                # Fetch activities data once (our own writes update it)
-                if climate_zone_id not in self.activities_data:
-                    try:
-                        self.activities_data[climate_zone_id] = (
-                            await self.api.async_get_activities(climate_zone_id)
-                        )
-                        _LOGGER.debug(
-                            "Requested activities data for climate zone %s: %s",
-                            climate_zone_id,
-                            async_redact_data(
-                                self.activities_data[climate_zone_id], TO_REDACT
-                            ),
-                        )
-                    except (ClientError, TimeoutError) as err:
-                        # Optional: requested again at the next update
-                        _LOGGER.warning(
-                            "Failed to request activities data for climate zone %s: %r",
-                            climate_zone_id,
-                            err,
-                        )
+                await self._async_update_activities(climate_zone_id, now)
 
                 self.device_info[climate_zone_id] = DeviceInfo(
                     identifiers={(DOMAIN, climate_zone_id)},
@@ -375,6 +357,50 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
                 climate_zone_id,
                 err,
             )
+
+    async def _async_update_activities(
+        self, climate_zone_id: str, now: datetime
+    ) -> None:
+        """Request the activities of a climate zone every 15 minutes.
+
+        Until the first request succeeds, they are requested at every update. After
+        that every 15 minutes, so changes made in the Remeha Home app show up. A write
+        from Home Assistant counts as an update (see set_activities): the read right
+        after a write has answered with values from before it.
+        """
+        last_update = self.activities_last_update.get(climate_zone_id)
+        if (
+            climate_zone_id in self.activities_data
+            and last_update is not None
+            and now - last_update < timedelta(minutes=14, seconds=45)
+        ):
+            return
+
+        try:
+            activities = await self.api.async_get_activities(climate_zone_id)
+        except (ClientError, TimeoutError) as err:
+            # Optional: the last known activities are kept, and requested again at
+            # the next update
+            _LOGGER.warning(
+                "Failed to request activities data for climate zone %s: %r",
+                climate_zone_id,
+                err,
+            )
+            return
+
+        _LOGGER.debug(
+            "Requested activities data for climate zone %s: %s",
+            climate_zone_id,
+            async_redact_data(activities, TO_REDACT),
+        )
+        self.set_activities(climate_zone_id, activities, now)
+
+    def set_activities(
+        self, climate_zone_id: str, activities: list, now: datetime | None = None
+    ) -> None:
+        """Store the activities of a climate zone, read or just written."""
+        self.activities_data[climate_zone_id] = activities
+        self.activities_last_update[climate_zone_id] = now or datetime.now()
 
     def invalidate_heating_curve(self, climate_zone_id: str) -> None:
         """Request the heating curve of a climate zone again on the next update."""
