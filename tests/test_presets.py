@@ -131,3 +131,47 @@ async def test_clock_program_from_manual(
     )
     mock_api.async_set_schedule.assert_awaited_once_with(CLIMATE_ZONE_ID, 2)
     assert hass.states.get(CLIMATE).state == "auto"
+
+
+async def test_clock_program_from_another_program(
+    hass: HomeAssistant, config_entry, mock_api, climate_zone
+) -> None:
+    """Switching programs also selects schedule mode for the new one.
+
+    Activating a program alone has left a zone on the setpoint of the program it left
+    (18.5 from 'Away') while its own schedule setpoint was the new program's (19.5);
+    selecting schedule mode made it follow the schedule at once.
+    """
+    climate_zone.update(
+        zoneMode="Scheduling",
+        activeHeatingClimateTimeProgramNumber=3,
+        setPoint=18.5,
+        currentScheduleSetPoint=19.5,
+    )
+    await setup_integration(hass, config_entry, mock_api)
+    act_like_the_appliance(mock_api, climate_zone)
+    calls = []
+
+    def activate(_zone_id, program: int) -> None:
+        calls.append("activate")
+        climate_zone["activeHeatingClimateTimeProgramNumber"] = program
+
+    def set_schedule(_zone_id, _program: int) -> None:
+        calls.append("schedule")
+        climate_zone.update(
+            zoneMode="Scheduling", setPoint=climate_zone["currentScheduleSetPoint"]
+        )
+
+    mock_api.async_activate_heating_time_program.side_effect = activate
+    mock_api.async_set_schedule.side_effect = set_schedule
+
+    await set_preset(hass, "clock_program_1")
+
+    mock_api.async_activate_heating_time_program.assert_awaited_once_with(
+        CLIMATE_ZONE_ID, 1
+    )
+    mock_api.async_set_schedule.assert_awaited_once_with(CLIMATE_ZONE_ID, 1)
+    assert calls == ["activate", "schedule"]
+    state = hass.states.get(CLIMATE)
+    assert state.attributes[ATTR_PRESET_MODE] == "clock_program_1"
+    assert state.attributes["temperature"] == 19.5

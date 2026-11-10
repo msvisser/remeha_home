@@ -416,7 +416,6 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
             return
 
         target_preset = PRESET_MODE_TO_PRESET_INDEX[preset_mode]
-        previous_hvac_mode = self.hvac_mode
 
         hvac_mode_mapping = get_hvac_mode_to_remeha_mode(self._can_cool())
         zone_data = self._data
@@ -431,9 +430,10 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
             await self.api.async_activate_heating_time_program(
                 self.climate_zone_id, target_preset
             )
-            # Automatically make sure the mode is set to schedule
-            if previous_hvac_mode != HVACMode.AUTO:
-                await self.api.async_set_schedule(self.climate_zone_id, target_preset)
+            # Then select schedule mode for it, also when the zone already follows a
+            # schedule: activating a program alone has left a zone on the setpoint of
+            # the program it left, while its own schedule setpoint was the new one's.
+            await self.api.async_set_schedule(self.climate_zone_id, target_preset)
         except Exception:
             # Revert the temporary override. If only the schedule request failed,
             # the next poll picks up the program that was already activated.
