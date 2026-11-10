@@ -274,7 +274,7 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
                 )
                 self.items[climate_zone_id] = climate_zone
 
-                # Fetch activities data once (re-fetched after writes)
+                # Fetch activities data once (our own writes update it)
                 if climate_zone_id not in self.activities_data:
                     try:
                         self.activities_data[climate_zone_id] = (

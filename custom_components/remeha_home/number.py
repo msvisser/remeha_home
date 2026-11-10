@@ -438,5 +438,17 @@ class RemehaHomeActivityNumber(CoordinatorEntity, NumberEntity):
         )
         await self.api.async_set_heating_activities(self.climate_zone_id, payload)
 
-        self.coordinator.activities_data.pop(self.climate_zone_id, None)
+        # Keep what was just written rather than reading the activities again: the
+        # read right after a write has answered with values from before it, and the
+        # next write, built from that read, would send those back.
+        written = {item["activityNumber"]: item["temperature"] for item in payload}
+        self.coordinator.activities_data[self.climate_zone_id] = [
+            {**activity, "temperature": written[activity["activityNumber"]]}
+            if activity.get("type") == "Heating"
+            and activity["activityNumber"] in written
+            else activity
+            for activity in activities
+        ]
+        # Show it now: a refresh asked for within the cooldown of the last one waits
+        self.coordinator.async_update_listeners()
         await self.coordinator.async_request_refresh()
