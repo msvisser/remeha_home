@@ -44,12 +44,13 @@ You can simply log in using the credentials that you would use in the respective
     - Pre-heat (binary sensor, if reported by the appliance): on while the zone starts heating early to reach the next setpoint of the clock program on time
     - The next schedule setpoint
     - The time at which the next schedule setpoint gets activated
-    - The current schedule setpoint
+    - The current schedule setpoint, as Remeha reports it. Right after a switch of the clock program it can still show the setpoint of the previous program for a while.
     - The end time of a temporary override (unknown when there is none), also as the `override_end_time` attribute of the climate entity
     - Switch to control fireplace mode
     - The heating curve slope and base setpoint (if supported by the appliance), and its maximum flow temperature (diagnostic).
     They are updated every 15 minutes, so changes made in the Remeha Home app show up.
-    - The temperatures of the heating activities used in the clock programs
+    - The temperatures of the heating activities used in the clock programs.
+    They are updated every 15 minutes, so changes made in the Remeha Home app show up. After a change in Home Assistant, the next update is 15 minutes later, because Remeha can still answer with the old values right after a change.
 - Each hot water zone exposes:
     - The water temperature. Combi boilers that don't report it get no water temperature sensor.
     - The current activity (Comfort or Eco)
@@ -164,7 +165,7 @@ data:
 - Changing the zone in the Remeha Home app during the override can change its end time. On a Remeha Elga Ace the end time was moved to the next switch of the clock program.
 - The zone must be in auto mode, so following its clock program. In heat or off mode the action asks you to set the zone to auto first.
 - During the override the thermostat shows auto, and the end time is in the Override End sensor and the `override_end_time` attribute.
-- Running the action again replaces the override. To stop it early, set the zone to heat or off.
+- Running the action again replaces the override. To stop it early, set the zone to heat or off, or select another clock program: the appliance ends the override when the program changes.
 - The action needs a zone that reports support for an end time (`capabilityTemporaryOverrideEndTime`). Otherwise it shows an error.
 
 Changing the target temperature in auto mode, for example on the thermostat card, still overrides the clock program until its next switch, as before.

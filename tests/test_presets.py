@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import timedelta
+
 import pytest
 from homeassistant.components.climate import (
     ATTR_PRESET_MODE,
@@ -11,6 +13,7 @@ from homeassistant.components.climate import (
 )
 from homeassistant.const import ATTR_ENTITY_ID
 from homeassistant.core import HomeAssistant
+from pytest_homeassistant_custom_component.common import async_fire_time_changed
 
 from .conftest import CLIMATE_ZONE_ID, load_fixture, setup_integration
 
@@ -191,3 +194,26 @@ async def test_clock_program_keeps_a_temporary_override(
         CLIMATE_ZONE_ID, 2
     )
     mock_api.async_set_schedule.assert_not_awaited()
+
+
+async def test_refreshed_again_after_a_change(
+    hass: HomeAssistant, config_entry, mock_api, climate_zone, freezer
+) -> None:
+    """The data is requested again 15 seconds after a change.
+
+    The read right after a change can still answer with the old values, such as the
+    setpoint of the clock program the zone left.
+    """
+    climate_zone["zoneMode"] = "Scheduling"
+    await setup_integration(hass, config_entry, mock_api)
+    act_like_the_appliance(mock_api, climate_zone)
+
+    await set_preset(hass, "clock_program_2")
+    await hass.async_block_till_done()
+    reads = mock_api.async_get_dashboard.await_count
+
+    freezer.tick(timedelta(seconds=15))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+
+    assert mock_api.async_get_dashboard.await_count == reads + 1
