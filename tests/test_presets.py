@@ -175,3 +175,19 @@ async def test_clock_program_from_another_program(
     state = hass.states.get(CLIMATE)
     assert state.attributes[ATTR_PRESET_MODE] == "clock_program_1"
     assert state.attributes["temperature"] == 19.5
+
+
+async def test_clock_program_keeps_a_temporary_override(
+    hass: HomeAssistant, config_entry, mock_api, climate_zone
+) -> None:
+    """A temporary override is left running: only the program is switched."""
+    climate_zone["zoneMode"] = "TemporaryOverride"
+    await setup_integration(hass, config_entry, mock_api)
+    act_like_the_appliance(mock_api, climate_zone)
+
+    await set_preset(hass, "clock_program_2")
+
+    mock_api.async_activate_heating_time_program.assert_awaited_once_with(
+        CLIMATE_ZONE_ID, 2
+    )
+    mock_api.async_set_schedule.assert_not_awaited()

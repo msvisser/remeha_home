@@ -433,7 +433,9 @@ class RemehaHomeClimateEntity(CoordinatorEntity, ClimateEntity):
             # Then select schedule mode for it, also when the zone already follows a
             # schedule: activating a program alone has left a zone on the setpoint of
             # the program it left, while its own schedule setpoint was the new one's.
-            await self.api.async_set_schedule(self.climate_zone_id, target_preset)
+            # A running temporary override is left alone, as before.
+            if previous_zone_mode != "TemporaryOverride":
+                await self.api.async_set_schedule(self.climate_zone_id, target_preset)
         except Exception:
             # Revert the temporary override. If only the schedule request failed,
             # the next poll picks up the program that was already activated.
