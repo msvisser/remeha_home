@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections import Counter
+from collections.abc import Awaitable, Callable
 from datetime import date, datetime, timedelta
 import logging
 
@@ -95,6 +96,9 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
         self.heating_curve_unsupported: set[str] = set()
         self.activities_data: dict[str, list] = {}
         self.activities_last_update: dict[str, datetime] = {}
+        # The switching points of the active clock program of each zone
+        self.time_program_data: dict[str, dict] = {}
+        self.time_program_last_update: dict[str, datetime] = {}
         # Failed updates in a row, see _async_update_data
         self.failed_updates = 0
 
@@ -276,6 +280,12 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
                 self.items[climate_zone_id] = climate_zone
 
                 await self._async_update_activities(climate_zone_id, now)
+                await self._async_update_time_program(
+                    climate_zone_id,
+                    climate_zone.get("activeHeatingClimateTimeProgramNumber"),
+                    self.api.async_get_heating_time_program,
+                    now,
+                )
 
                 self.device_info[climate_zone_id] = DeviceInfo(
                     identifiers={(DOMAIN, climate_zone_id)},
@@ -291,6 +301,12 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
                 hot_water_zone_id = hot_water_zone["hotWaterZoneId"]
                 hot_water_zone["dhwCurrentActivity"] = self._derive_dhw_activity(
                     hot_water_zone
+                )
+                await self._async_update_time_program(
+                    hot_water_zone_id,
+                    hot_water_zone.get("activeDwhTimeProgramNumber"),
+                    self.api.async_get_hot_water_time_program,
+                    now,
                 )
 
                 self.items[hot_water_zone_id] = hot_water_zone
@@ -394,6 +410,56 @@ class RemehaHomeUpdateCoordinator(DataUpdateCoordinator):
             async_redact_data(activities, TO_REDACT),
         )
         self.set_activities(climate_zone_id, activities, now)
+
+    async def _async_update_time_program(
+        self,
+        zone_id: str,
+        program: object,
+        request: Callable[[str, int], Awaitable[dict]],
+        now: datetime,
+    ) -> None:
+        """Request the active clock program of a zone.
+
+        It is requested when it isn't known yet, when another program becomes
+        active, and every 15 minutes, so changes made in the Remeha Home app show
+        up. A failed request keeps the last known program and is tried again at the
+        next update.
+        """
+        if isinstance(program, bool) or not isinstance(program, int):
+            return
+        known = self.time_program_data.get(zone_id)
+        last_update = self.time_program_last_update.get(zone_id)
+        if (
+            known is not None
+            and known["program"] == program
+            and last_update is not None
+            and now - last_update < timedelta(minutes=14, seconds=45)
+        ):
+            return
+
+        try:
+            time_program = await request(zone_id, program)
+        except (ClientError, TimeoutError) as err:
+            _LOGGER.warning(
+                "Failed to request clock program %s of zone %s: %r",
+                program,
+                zone_id,
+                err,
+            )
+            return
+
+        _LOGGER.debug(
+            "Requested clock program %s of zone %s: %s", program, zone_id, time_program
+        )
+        self.time_program_data[zone_id] = {"program": program, "data": time_program}
+        self.time_program_last_update[zone_id] = now
+
+    def get_time_program(self, zone_id: str, program: object) -> dict | None:
+        """Return the clock program of a zone, None when another one is known."""
+        known = self.time_program_data.get(zone_id)
+        if known is None or known["program"] != program:
+            return None
+        return known["data"]
 
     def set_activities(
         self, climate_zone_id: str, activities: list, now: datetime | None = None

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 import logging
+from typing import Any
 
 
 from homeassistant.components.sensor import (
@@ -31,6 +32,7 @@ from .coordinator import (
     RemehaHomeUpdateCoordinator,
     get_producers,
 )
+from .schedule import heating_schedule, hot_water_schedule
 from .util import remeha_time, remeha_utc_time, reports_dhw_temperature
 
 _LOGGER = logging.getLogger(__name__)
@@ -47,6 +49,9 @@ VALUE_FUNCTIONS = {
     # value stays as sent, so that it is logged as unexpected.
     "activeDwhTimeProgramNumber": lambda value: PRESET_INDEX_TO_PRESET_MODE.get(
         value, value
+    ),
+    "activeHeatingClimateTimeProgramNumber": lambda value: (
+        PRESET_INDEX_TO_PRESET_MODE.get(value, value)
     ),
 }
 
@@ -79,7 +84,9 @@ async def async_setup_entry(
             climate_zone_id = climate_zone["climateZoneId"]
             for entity_description in CLIMATE_ZONE_SENSOR_TYPES:
                 entities.append(
-                    RemehaHomeSensor(coordinator, climate_zone_id, entity_description)
+                    _sensor_class(entity_description)(
+                        coordinator, climate_zone_id, entity_description
+                    )
                 )
 
             heating_curve = coordinator.get_heating_curve(climate_zone_id) or {}
@@ -101,7 +108,9 @@ async def async_setup_entry(
                     _async_remove_sensor(hass, hot_water_zone_id, entity_description.key)
                     continue
                 entities.append(
-                    RemehaHomeSensor(coordinator, hot_water_zone_id, entity_description)
+                    _sensor_class(entity_description)(
+                        coordinator, hot_water_zone_id, entity_description
+                    )
                 )
     async_add_entities(entities)
 
@@ -226,3 +235,43 @@ class RemehaHomeSensor(CoordinatorEntity, SensorEntity):
     def device_info(self) -> DeviceInfo:
         """Return device info for this device."""
         return self.coordinator.get_device_info(self.item_id)
+
+
+class RemehaHomeClockProgramSensor(RemehaHomeSensor):
+    """The active clock program of a zone, with its week schedule as an attribute.
+
+    The schedule has the same shape for heating and hot water: per day, Monday
+    first, a list of switching points with time, mode and setpoint.
+    """
+
+    # The schedule rarely changes and is large, so keep it out of the database
+    _unrecorded_attributes = frozenset({"schedule"})
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return the number and the week schedule of the active clock program."""
+        zone = self._data or {}
+        program = zone.get(self.entity_description.key)
+        time_program = self.coordinator.get_time_program(self.item_id, program)
+        if self.entity_description.key == "activeDwhTimeProgramNumber":
+            schedule = hot_water_schedule(time_program, zone)
+        else:
+            schedule = heating_schedule(
+                time_program, self.coordinator.get_activities(self.item_id)
+            )
+        return {"program": program, "schedule": schedule}
+
+
+CLOCK_PROGRAM_KEYS = {
+    "activeDwhTimeProgramNumber",
+    "activeHeatingClimateTimeProgramNumber",
+}
+
+
+def _sensor_class(
+    entity_description: SensorEntityDescription,
+) -> type[RemehaHomeSensor]:
+    """Return the sensor class for an entity description."""
+    if entity_description.key in CLOCK_PROGRAM_KEYS:
+        return RemehaHomeClockProgramSensor
+    return RemehaHomeSensor

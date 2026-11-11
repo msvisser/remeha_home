@@ -74,6 +74,12 @@ def mock_api(dashboard) -> MagicMock:
     )
     api.async_get_heating_curve.return_value = load_fixture("heating_curve.json")
     api.async_get_activities.return_value = load_fixture("activities.json")
+    api.async_get_heating_time_program.return_value = load_fixture(
+        "time_program_heating.json"
+    )
+    api.async_get_hot_water_time_program.return_value = load_fixture(
+        "time_program_hot_water.json"
+    )
     return api
 
 

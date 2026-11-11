@@ -44,6 +44,7 @@ You can simply log in using the credentials that you would use in the respective
     - Pre-heat (binary sensor, if reported by the appliance): on while the zone starts heating early to reach the next setpoint of the clock program on time
     - The next schedule setpoint
     - The time at which the next schedule setpoint gets activated
+    - The active clock program (diagnostic), with the week schedule of that program as an attribute. See [Clock program schedules](#clock-program-schedules).
     - The current schedule setpoint, as Remeha reports it. Right after a switch of the clock program it can still show the setpoint of the previous program for a while.
     - The end time of a temporary override (unknown when there is none), also as the `override_end_time` attribute of the climate entity
     - Switch to control fireplace mode
@@ -56,7 +57,7 @@ You can simply log in using the credentials that you would use in the respective
     - The current activity (Comfort or Eco)
     - The status, plus a binary status sensor (both disabled by default)
     - The time at which the next schedule setpoint gets activated, and the next activity of the clock program (Comfort or Eco). The API also reports both when the zone doesn't follow the clock program, e.g. in Eco mode.
-    - The number of the active hot water clock program (diagnostic), shown with the names of the presets of the climate entity (Schedule 1 to 3)
+    - The number of the active hot water clock program (diagnostic), shown with the names of the presets of the climate entity (Schedule 1 to 3), with the week schedule of that program as an attribute. See [Clock program schedules](#clock-program-schedules).
     - Whether hot water optimization is enabled (binary sensor, diagnostic, if supported by the appliance)
     - Water heater control with modes (Schedule, Comfort, Eco) and target temperature, the same modes as in the Remeha Home app.
     The target temperature is the setpoint of the active activity, Comfort or Eco.
@@ -169,6 +170,33 @@ data:
 - The action needs a zone that reports support for an end time (`capabilityTemporaryOverrideEndTime`). Otherwise it shows an error.
 
 Changing the target temperature in auto mode, for example on the thermostat card, still overrides the clock program until its next switch, as before.
+
+## Clock program schedules
+The Clock program sensors of the climate zones and hot water zones show the active clock program, and have its week schedule as the `schedule` attribute.
+The schedule has the same shape for heating and hot water: per day, Monday first, a list of switching points with the time, the mode from then on, and its setpoint.
+
+```yaml
+program: 1
+schedule:
+  monday:
+    - {time: "06:30", mode: "Home", setpoint: 20.0}
+    - {time: "22:30", mode: "Sleep", setpoint: 18.0}
+  tuesday: ...
+```
+
+- For heating, the mode is the name of the activity and the setpoint its temperature, as in the Remeha Home app.
+- For hot water, the mode is Comfort or Eco, with the comfort or eco temperature of the hot water zone. A combi boiler doesn't keep water warm in Eco, so it has no Eco setpoint.
+- The schedule is read every 15 minutes, and right away when another clock program becomes active, so changes made in the Remeha Home app show up. It is read-only.
+- The schedule isn't stored in the history database, because it is large and rarely changes.
+
+To show the hot water schedule on a dashboard, use a Markdown card with a template. Replace `sensor.dhw_clock_program` with the entity ID of your sensor:
+```yaml
+type: markdown
+content: >
+  {% for day, points in state_attr('sensor.dhw_clock_program', 'schedule').items() %}
+  **{{ day | capitalize }}**: {% for p in points %}{{ p.time }} {{ p.mode }}{% if not loop.last %}, {% endif %}{% endfor %}
+  {% endfor %}
+```
 
 ## Holiday mode
 Like in the Remeha Home app, you can schedule a holiday period. During the holiday, the appliance sets the climate zones to frost protection and turns the hot water off.

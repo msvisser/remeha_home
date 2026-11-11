@@ -28,6 +28,7 @@ async def async_get_config_entry_diagnostics(
             "dashboard": coordinator.data,
             "technical_info": coordinator.technical_info,
             "activities": coordinator.activities_data,
+            "time_programs": coordinator.time_program_data,
         },
         TO_REDACT,
     )
