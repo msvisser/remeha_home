@@ -184,6 +184,7 @@ schedule:
   tuesday: ...
 ```
 
+- Each switching point gives the mode from that time on. A day starts with the mode of the last switching point of the day before, as in the Remeha Home app.
 - For heating, the mode is the name of the activity and the setpoint its temperature, as in the Remeha Home app.
 - For hot water, the mode is Comfort or Eco, with the comfort or eco temperature of the hot water zone. A combi boiler doesn't keep water warm in Eco, so it has no Eco setpoint.
 - The schedule is read every 15 minutes, and right away when another clock program becomes active, so changes made in the Remeha Home app show up. It is read-only.
