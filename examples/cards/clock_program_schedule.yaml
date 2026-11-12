@@ -1,0 +1,35 @@
+# Markdown cards that show the week schedule of the active clock program as a
+# table. Replace sensor.living_room_clock_program and sensor.dhw_clock_program
+# with the entity IDs of your Clock program sensors. Add one card at a time: in the
+# dashboard editor add a Markdown card, choose Show code editor, and paste one card.
+
+# Heating
+type: markdown
+title: Heating schedule
+content: |
+  {% set s = state_attr('sensor.living_room_clock_program', 'schedule') %}
+  {% if s %}
+  | Day | From |
+  |---|---|
+  {% for day, points in s.items() -%}
+  | {{ day | capitalize }} | {% for p in points %}**{{ p.time }}** {{ p.mode }}{% if p.setpoint is not none %} ({{ p.setpoint }} °C){% endif %}{% if not loop.last %} · {% endif %}{% endfor %} |
+  {% endfor %}
+  {% else %}
+  The schedule isn't known yet.
+  {% endif %}
+
+---
+# Hot water
+type: markdown
+title: Hot water schedule
+content: |
+  {% set s = state_attr('sensor.dhw_clock_program', 'schedule') %}
+  {% if s %}
+  | Day | From |
+  |---|---|
+  {% for day, points in s.items() -%}
+  | {{ day | capitalize }} | {% for p in points %}**{{ p.time }}** {{ p.mode }}{% if p.setpoint is not none %} ({{ p.setpoint }} °C){% endif %}{% if not loop.last %} · {% endif %}{% endfor %} |
+  {% endfor %}
+  {% else %}
+  The schedule isn't known yet.
+  {% endif %}
