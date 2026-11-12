@@ -422,6 +422,7 @@ The integration saves the modes when a holiday starts, and sets them again when 
 | `POST /climate-zones/{climate_zone_id}/modes/manual` | `roomTemperatureSetPoint` | Hold a fixed temperature |
 | `POST /climate-zones/{climate_zone_id}/modes/anti-frost` | none | Frost protection (off) |
 | `POST /climate-zones/{climate_zone_id}/time-programs/heating/{time_program_id}/activate` | none | Select clock program 1 to 3 |
+| `GET /climate-zones/{climate_zone_id}/time-programs/heating/{time_program_id}` | | Read the switching points of a clock program |
 | `POST /climate-zones/{climate_zone_id}/modes/fireplacemode` | `fireplaceModeActive` | Turn fireplace mode on or off |
 | `GET`, `POST /climate-zones/{climate_zone_id}/heating-curve` | `slope`, `baseSetpoint` | Read or change the heating curve |
 | `GET /climate-zones/{climate_zone_id}/activities` | | Read the activities of the clock programs |
@@ -496,6 +497,40 @@ POST /climate-zones/{climate_zone_id}/time-programs/heating/{time_program_id}/ac
 ```
 
 Selects clock program `time_program_id` (1 to 3) for schedule mode. No body.
+
+### Get a clock program
+```http
+GET /climate-zones/{climate_zone_id}/time-programs/heating/{time_program_id}
+GET /climate-zones/{climate_zone_id}/time-programs/cooling/{time_program_id}
+GET /hot-water-zones/{hot_water_zone_id}/time-programs/{time_program_id}
+```
+
+Returns the switching points of clock program `time_program_id` (1 to 3).
+Each switching point has a `day`, where **0 is Sunday** (measured on a Remeha Elga Ace), and a `time` in local time.
+From that time on, a heating or cooling zone uses activity `activity` (see [Get the activities](#get-the-activities)), or `customValue` when it isn't null.
+A hot water zone uses comfort when `comfortActive` is true, and eco otherwise; on a combi boiler the appliance also reported a switch to comfort as the next switch (`nextSwitchActivity`) for a switching point with `comfortActive` true.
+An unused program returns no switching points. There is no request that returns all programs at once.
+
+```json
+{
+  "timeProgramNumber": 1,
+  "type": "Heating",
+  "switchPoints": [
+    {"day": 1, "time": "06:30", "activity": 1, "customValue": null},
+    {"day": 1, "time": "22:30", "activity": 2, "customValue": null}
+  ]
+}
+```
+
+```json
+{
+  "timeProgramNumber": 1,
+  "switchPoints": [
+    {"day": 1, "time": "04:00", "comfortActive": true},
+    {"day": 1, "time": "06:00", "comfortActive": false}
+  ]
+}
+```
 
 ### Fireplace mode
 ```http
@@ -686,7 +721,7 @@ The hot water modes of the Remeha Home app map to these modes and requests:
 | Eco | `Off` | `POST /hot-water-zones/{hot_water_zone_id}/modes/anti-frost` |
 | Boost | `Boost` | `POST /hot-water-zones/{hot_water_zone_id}/modes/boost` |
 
-The mode requests have no body.
+The mode requests have no body. The clock programs of a hot water zone are read with `GET /hot-water-zones/{hot_water_zone_id}/time-programs/{time_program_id}`, see [Get a clock program](#get-a-clock-program).
 
 ### Boost
 ```http

@@ -241,6 +241,14 @@ CLIMATE_ZONE_SENSOR_TYPES = [
         name="Override End",
         device_class=SensorDeviceClass.TIMESTAMP,
     ),
+    SensorEntityDescription(
+        # The active clock program, with its week schedule as an attribute
+        key="activeHeatingClimateTimeProgramNumber",
+        translation_key="clock_program",
+        device_class=SensorDeviceClass.ENUM,
+        options=list(PRESET_INDEX_TO_PRESET_MODE.values()),
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
 ]
 
 HEATING_CURVE_SENSOR_TYPES = [
@@ -282,7 +290,8 @@ HOT_WATER_ZONE_SENSOR_TYPES = [
         name="Next Mode",
     ),
     SensorEntityDescription(
-        # The active clock program, with the names of the presets of the climate entity
+        # The active clock program, with the names of the presets of the climate
+        # entity and its week schedule as an attribute
         key="activeDwhTimeProgramNumber",
         translation_key="clock_program",
         device_class=SensorDeviceClass.ENUM,

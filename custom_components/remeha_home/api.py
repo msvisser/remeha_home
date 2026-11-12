@@ -195,6 +195,28 @@ class RemehaHomeAPI:
         response.raise_for_status()
         return await response.json()
 
+    async def async_get_heating_time_program(
+        self, climate_zone_id: str, time_program_id: int
+    ) -> dict:
+        """Get the switching points of a heating clock program of a climate zone."""
+        response = await self._async_api_request(
+            "GET",
+            f"/climate-zones/{climate_zone_id}/time-programs/heating/{time_program_id}",
+        )
+        response.raise_for_status()
+        return await response.json()
+
+    async def async_get_hot_water_time_program(
+        self, hot_water_zone_id: str, time_program_id: int
+    ) -> dict:
+        """Get the switching points of a clock program of a hot water zone."""
+        response = await self._async_api_request(
+            "GET",
+            f"/hot-water-zones/{hot_water_zone_id}/time-programs/{time_program_id}",
+        )
+        response.raise_for_status()
+        return await response.json()
+
     async def async_set_heating_activities(
         self, climate_zone_id: str, activities: list[dict]
     ) -> None:

@@ -1,0 +1,150 @@
+{
+  "timeProgramNumber": 1,
+  "type": "Heating",
+  "switchPoints": [
+    {
+      "day": 0,
+      "time": "08:00",
+      "activity": 1,
+      "customValue": null
+    },
+    {
+      "day": 0,
+      "time": "23:00",
+      "activity": 2,
+      "customValue": null
+    },
+    {
+      "day": 1,
+      "time": "06:30",
+      "activity": 1,
+      "customValue": null
+    },
+    {
+      "day": 1,
+      "time": "08:30",
+      "activity": 4,
+      "customValue": null
+    },
+    {
+      "day": 1,
+      "time": "17:00",
+      "activity": 1,
+      "customValue": null
+    },
+    {
+      "day": 1,
+      "time": "22:30",
+      "activity": 2,
+      "customValue": null
+    },
+    {
+      "day": 2,
+      "time": "06:30",
+      "activity": 1,
+      "customValue": null
+    },
+    {
+      "day": 2,
+      "time": "08:30",
+      "activity": 4,
+      "customValue": null
+    },
+    {
+      "day": 2,
+      "time": "17:00",
+      "activity": 1,
+      "customValue": null
+    },
+    {
+      "day": 2,
+      "time": "22:30",
+      "activity": 2,
+      "customValue": null
+    },
+    {
+      "day": 3,
+      "time": "06:30",
+      "activity": 1,
+      "customValue": null
+    },
+    {
+      "day": 3,
+      "time": "08:30",
+      "activity": 4,
+      "customValue": null
+    },
+    {
+      "day": 3,
+      "time": "17:00",
+      "activity": 1,
+      "customValue": null
+    },
+    {
+      "day": 3,
+      "time": "22:30",
+      "activity": 2,
+      "customValue": null
+    },
+    {
+      "day": 4,
+      "time": "06:30",
+      "activity": 1,
+      "customValue": null
+    },
+    {
+      "day": 4,
+      "time": "08:30",
+      "activity": 4,
+      "customValue": null
+    },
+    {
+      "day": 4,
+      "time": "17:00",
+      "activity": 1,
+      "customValue": null
+    },
+    {
+      "day": 4,
+      "time": "22:30",
+      "activity": 2,
+      "customValue": null
+    },
+    {
+      "day": 5,
+      "time": "06:30",
+      "activity": 1,
+      "customValue": null
+    },
+    {
+      "day": 5,
+      "time": "08:30",
+      "activity": 4,
+      "customValue": null
+    },
+    {
+      "day": 5,
+      "time": "17:00",
+      "activity": 1,
+      "customValue": null
+    },
+    {
+      "day": 5,
+      "time": "22:30",
+      "activity": 2,
+      "customValue": null
+    },
+    {
+      "day": 6,
+      "time": "08:00",
+      "activity": 1,
+      "customValue": null
+    },
+    {
+      "day": 6,
+      "time": "23:00",
+      "activity": 2,
+      "customValue": 18.5
+    }
+  ]
+}
