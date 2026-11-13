@@ -19,7 +19,8 @@ The entities that the integration creates, per climate zone, hot water zone, app
 - Each climate zone also exposes the following sensors/switches/numbers:
     - The room temperature
     - The status (e.g. heating or idle), plus a binary status sensor (disabled by default)
-    - Pre-heat (binary sensor, if reported by the appliance): on while the zone starts heating early to reach the next setpoint of the clock program on time
+    - Pre-heat (switch, if supported by the appliance): turns pre-heat on or off, as in the Remeha Home app. With pre-heat on, the zone starts heating early to reach the next setpoint of the clock program on time.
+    - Pre-heat active (binary sensor, if reported by the appliance): on while the zone starts heating early
     - The next schedule setpoint
     - The time at which the next schedule setpoint gets activated
     - The active clock program (diagnostic), with the week schedule of that program as an attribute. See [Clock program schedules](clock-programs.md).

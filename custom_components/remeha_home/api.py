@@ -166,6 +166,26 @@ class RemehaHomeAPI:
         )
         response.raise_for_status()
 
+    async def async_set_pre_heat(
+        self, appliance_id: str, enabled_by_zone: dict[str, bool]
+    ) -> None:
+        """Turn pre-heat on or off for the climate zones of an appliance.
+
+        The request lists every climate zone of the appliance with whether pre-heat
+        is enabled, so pass the current value of the zones that don't change.
+        """
+        response = await self._async_api_request(
+            "POST",
+            f"/appliances/{appliance_id}/preheat",
+            json={
+                "climateZones": [
+                    {"climateZoneId": zone_id, "preHeatEnabled": enabled}
+                    for zone_id, enabled in enabled_by_zone.items()
+                ]
+            },
+        )
+        response.raise_for_status()
+
     async def async_get_heating_curve(self, climate_zone_id: str) -> dict:
         """Get the heating curve parameters for a climate zone."""
         response = await self._async_api_request(
