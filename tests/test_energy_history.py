@@ -553,3 +553,77 @@ async def test_action_rejects_period_from_today(
         await _history(hass, config_entry, start, "2026-11-10")
 
     mock_api.async_get_consumption_data_for_range.assert_not_awaited()
+
+
+def _boiler_day(day: str, heating: float, hot_water: float) -> dict:
+    """Return a day of a boiler whose only producer has no type, like a BOK19."""
+    return {
+        "timeStamp": f"{day}T00:00:00+00:00",
+        "isDataReported": True,
+        "heatingEnergyConsumed": heating,
+        "hotWaterEnergyConsumed": hot_water,
+        "coolingEnergyConsumed": 0,
+        "heatingEnergyDelivered": 0,
+        "hotWaterEnergyDelivered": 0,
+        "coolingEnergyDelivered": 0,
+        "producerPerformanceStatistics": {
+            "producers": [
+                {
+                    "isMigratedFromLegacy": True,
+                    "instanceWithinDevice": None,
+                    "producerType": None,
+                    "energyType": None,
+                    "energyConsumptionCH": heating,
+                    "energyConsumptionDHW": hot_water,
+                    "energyConsumptionTotal": heating + hot_water,
+                }
+            ]
+        },
+    }
+
+
+def test_appliance_totals_of_a_boiler_without_producer_type() -> None:
+    """A boiler whose producer has no type still gets its figures as totals."""
+    result = combine_history(
+        date(2026, 11, 11),
+        date(2026, 11, 12),
+        [{"data": [_boiler_day("2026-11-11", 40.0, 4.5), _boiler_day("2026-11-12", 46.0, 5.0)]}],
+    )
+
+    day = result["days"][1]
+    assert day["producers"] == []
+    assert day["heat_pump_heating_consumed_kwh"] is None
+    assert day["gas_heating_consumed_kwh"] is None
+    assert day["appliance_heating_consumed_kwh"] == 46.0
+    assert day["appliance_hot_water_consumed_kwh"] == 5.0
+    assert day["appliance_heating_delivered_kwh"] == 0.0
+    period = result["period"]
+    assert period["appliance_heating_consumed_kwh"] == 86.0
+    assert period["appliance_hot_water_consumed_kwh"] == 9.5
+
+
+def test_appliance_totals_of_a_hybrid() -> None:
+    """On a hybrid the totals add up the heat pump and the gas boiler."""
+    day = normalize_history_day(_january_9())
+
+    assert day["appliance_heating_consumed_kwh"] == 20.0
+    assert day["appliance_heating_delivered_kwh"] == 68.0
+    # The heat pump's own figures stay separate
+    assert day["heat_pump_heating_consumed_kwh"] == 18.0
+
+
+def test_missing_appliance_total_is_unknown() -> None:
+    """A missing or invalid total is unknown, and so is the period total."""
+    first = _boiler_day("2026-11-11", 40.0, 4.5)
+    second = _boiler_day("2026-11-12", 46.0, 5.0)
+    del second["heatingEnergyConsumed"]
+    second["hotWaterEnergyConsumed"] = "n/a"
+
+    result = combine_history(
+        date(2026, 11, 11), date(2026, 11, 12), [{"data": [first, second]}]
+    )
+
+    assert result["days"][1]["appliance_heating_consumed_kwh"] is None
+    assert result["days"][1]["appliance_hot_water_consumed_kwh"] is None
+    assert result["period"]["appliance_heating_consumed_kwh"] is None
+    assert result["period"]["appliance_hot_water_consumed_kwh"] is None

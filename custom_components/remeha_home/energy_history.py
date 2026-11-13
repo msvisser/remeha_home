@@ -17,6 +17,14 @@ from .producer_ids import is_valid_producer
 _LOGGER = logging.getLogger(__name__)
 
 MAX_HISTORY_DAYS = 366
+
+# The totals of the appliance in the response, and their fields in the API
+APPLIANCE_TOTALS = {
+    "appliance_heating_consumed_kwh": "heatingEnergyConsumed",
+    "appliance_heating_delivered_kwh": "heatingEnergyDelivered",
+    "appliance_hot_water_consumed_kwh": "hotWaterEnergyConsumed",
+    "appliance_hot_water_delivered_kwh": "hotWaterEnergyDelivered",
+}
 HISTORY_BATCH_DAYS = 31
 
 
@@ -162,6 +170,10 @@ def normalize_history_day(item: dict) -> dict | None:
         "heat_pump_heating_delivered_kwh": delivered,
         "heat_pump_heating_cop": cop,
         "gas_heating_consumed_kwh": gas,
+        # The totals of the appliance, as Remeha reports them. On an appliance with
+        # one heat source, such as a boiler whose producer has no type, these are its
+        # figures; on a hybrid they add up all heat sources (gas and electricity).
+        **{key: _energy(item.get(source)) for key, source in APPLIANCE_TOTALS.items()},
         "producers": producers,
     }
 
@@ -174,6 +186,7 @@ def _round_day(row: dict) -> dict:
         "heat_pump_heating_delivered_kwh",
         "heat_pump_heating_cop",
         "gas_heating_consumed_kwh",
+        *APPLIANCE_TOTALS,
     ):
         if rounded[key] is not None:
             rounded[key] = round(rounded[key], 2)
@@ -268,6 +281,10 @@ def combine_history(start: date, end: date, responses: list[dict]) -> dict:
             "gas_heating_consumed_kwh": (
                 round(gas, 2) if gas is not None else None
             ),
+            **{
+                key: round(value, 2) if (value := total(key)) is not None else None
+                for key in APPLIANCE_TOTALS
+            },
         },
         "note": "Remeha's indicative estimates; no independently verified heat meter",
     }

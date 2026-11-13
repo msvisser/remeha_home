@@ -828,8 +828,12 @@ date**, despite the UTC-looking `Z` suffix. The action therefore returns
 daylight-saving transitions.
 
 The output keeps heat-pump **space-heating** electricity and delivered heating
-energy separate from the gas boiler's space-heating input. Hot water and cooling
-are intentionally out of scope. Daily `heat_pump_heating_cop` is indicative;
+energy separate from the gas boiler's space-heating input. The appliance totals
+(`heatingEnergyConsumed`, `heatingEnergyDelivered`, `hotWaterEnergyConsumed` and
+`hotWaterEnergyDelivered`) are returned as `appliance_*_kwh` fields as well: on a
+Brötje BOK19 oil boiler the only producer has no `producerType` or `energyType`
+(`isMigratedFromLegacy: true`), so only the totals have its figures. Cooling is
+out of scope. Daily `heat_pump_heating_cop` is indicative;
 the `period.heat_pump_heating_cop` is computed as the sum of delivered heating
 kWh divided by the sum of electrical heating kWh, **not** by averaging daily COP
 values. The period ratio and totals are computed over **reported days**, even if
