@@ -74,7 +74,10 @@ Copy `custom_components/remeha_home` to the `custom_components` folder of your H
 
 ## Tests and lint
 
+The tests and lint run on every pull request. To run them yourself (Python 3.14):
+
 ```bash
+python3 -m pip install -r requirements_test.txt
 python3 -m pytest
 ruff check .
 ```

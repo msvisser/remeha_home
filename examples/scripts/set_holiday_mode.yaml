@@ -1,0 +1,22 @@
+# Set holiday mode: asks for the departure and return dates.
+# Replace binary_sensor.my_home_holiday_mode with your Holiday Mode sensor.
+alias: Set holiday mode
+icon: mdi:beach
+fields:
+  start_date:
+    name: Departure
+    required: true
+    selector:
+      date:
+  end_date:
+    name: Return
+    required: true
+    selector:
+      date:
+sequence:
+  - action: remeha_home.set_holiday_mode
+    target:
+      entity_id: binary_sensor.my_home_holiday_mode
+    data:
+      start_date: "{{ start_date }}"
+      end_date: "{{ end_date }}"
