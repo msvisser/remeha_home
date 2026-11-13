@@ -42,7 +42,8 @@ The entities that the integration creates, per climate zone, hot water zone, app
     - Setpoint numbers for the Comfort and Eco temperatures. The Eco temperature is only available for a hot water tank: a combi boiler doesn't keep water warm in Eco, so Remeha has no Eco temperature for it.
     - A Boost switch to start and stop boost (if supported by the appliance). Remeha only accepts boost while the zone is in Schedule mode, so the switch gives an error in other modes. Stopping boost returns the zone to Schedule. While boosting, the water heater shows the Boost mode and its `remaining_boost_time` attribute shows how long it still runs.
 - Each appliance (boiler or heat pump) exposes the following sensors:
-    - The water pressure, and a Water Pressure problem sensor that turns on when Remeha reports that the pressure is not OK
+    - The water pressure, and a Water Pressure problem sensor that turns on when Remeha reports that the pressure is not OK.
+    Appliances that don't report a pressure, such as a boiler with only an analog pressure gauge, get neither sensor.
     - Whether the appliance is online (diagnostic)
     - The thermal mode (e.g. heating, cooling or idle)
     - The operating mode (e.g. AutomaticHeating): what the appliance is set to do, where the thermal mode shows what it is doing now
