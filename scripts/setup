@@ -4,4 +4,5 @@ set -e
 
 cd "$(dirname "$0")/.."
 
-python3 -m pip install --requirement requirements.txt
+# Ruff for linting, and Home Assistant with the test tools
+python3 -m pip install --requirement requirements.txt --requirement requirements_test.txt

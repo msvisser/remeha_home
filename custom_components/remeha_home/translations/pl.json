@@ -1,0 +1,165 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "To konto Remeha Home jest już skonfigurowane",
+            "failed_to_authenticate": "Nie udało się uwierzytelnić",
+            "reauth_successful": "Ponowne uwierzytelnienie powiodło się",
+            "wrong_account": "Zaloguj się na konto Remeha Home, które zostało wcześniej skonfigurowane. Aby użyć innego konta, usuń integrację i dodaj ją ponownie."
+        },
+        "error": {
+            "failed_to_authenticate": "Nieprawidłowy adres e-mail lub hasło"
+        },
+        "step": {
+            "auth": {
+                "description": "Skonfiguruj integrację Remeha Home przy użyciu swoich danych logowania do Remeha Home.",
+                "data": {
+                    "email": "Adres e-mail",
+                    "password": "Hasło"
+                }
+            },
+            "reauth_confirm": {
+                "description": "Nie udało się odświeżyć tokenu dostępu Remeha Home. Zaloguj się ponownie przy użyciu danych Remeha Home, aby kontynuować korzystanie z integracji."
+            }
+        }
+    },
+    "entity": {
+        "climate": {
+            "remeha_home": {
+                "state_attributes": {
+                    "preset_mode": {
+                        "state": {
+                            "clock_program_1": "Harmonogram 1",
+                            "clock_program_2": "Harmonogram 2",
+                            "clock_program_3": "Harmonogram 3",
+                            "anti_frost": "Ochrona przed mrozem",
+                            "manual": "Ręczny"
+                        }
+                    }
+                }
+            }
+        },
+        "water_heater": {
+            "remeha_home_dhw": {
+                "state": {
+                    "heat_pump": "Harmonogram",
+                    "performance": "Komfort",
+                    "eco": "Eko",
+                    "high_demand": "Boost"
+                },
+                "state_attributes": {
+                    "current_temperature": {
+                        "name": "Aktualna temperatura"
+                    }
+                }
+            }
+        },
+        "number": {
+            "heating_curve_slope": {
+                "name": "Nachylenie krzywej grzewczej"
+            },
+            "heating_curve_base_setpoint": {
+                "name": "Punkt bazowy krzywej grzewczej"
+            }
+        },
+        "sensor": {
+            "heating_curve_max_flow_temperature": {
+                "name": "Maksymalna temperatura zasilania krzywej grzewczej"
+            },
+            "clock_program": {
+                "name": "Program czasowy",
+                "state": {
+                    "clock_program_1": "Harmonogram 1",
+                    "clock_program_2": "Harmonogram 2",
+                    "clock_program_3": "Harmonogram 3"
+                }
+            }
+        }
+    },
+    "exceptions": {
+        "set_temperature_while_off": {
+            "message": "Nie można ustawić temperatury, gdy strefa jest w trybie ochrony przed zamarzaniem. Najpierw zmień tryb lub podaj `hvac_mode` razem z temperaturą."
+        },
+        "boost_requires_schedule": {
+            "message": "Boost można uruchomić tylko wtedy, gdy strefa ciepłej wody jest w trybie Harmonogram."
+        },
+        "eco_setpoint_requires_tank": {
+            "message": "Temperaturę Eko można zmienić tylko dla zasobnika ciepłej wody. Kocioł dwufunkcyjny nie utrzymuje ciepłej wody w trybie Eko, więc nie ma temperatury do ustawienia."
+        },
+        "holiday_end_before_start": {
+            "message": "Data końcowa musi być późniejsza niż data początkowa."
+        },
+        "holiday_end_in_past": {
+            "message": "Data końcowa musi być późniejsza niż dzisiaj."
+        },
+        "holiday_mode_wrong_entity": {
+            "message": "{entity_id} nie jest czujnikiem trybu urlopowego. Wybierz czujnik Holiday Mode urządzenia."
+        },
+        "holiday_request_rejected": {
+            "message": "Remeha Home odrzuciło żądanie trybu urlopowego ({status}): {message}"
+        },
+        "temporary_override_not_supported": {
+            "message": "{entity_id} nie obsługuje tymczasowej temperatury z czasem zakończenia."
+        },
+        "temporary_override_requires_auto": {
+            "message": "Tymczasowa temperatura działa tylko wtedy, gdy {entity_id} realizuje program czasowy. Najpierw ustaw strefę w trybie auto."
+        },
+        "temperature_out_of_range": {
+            "message": "{temperature} °C jest poza zakresem strefy (od {min_temp} do {max_temp} °C)."
+        },
+        "heating_curve_unavailable": {
+            "message": "Krzywej grzewczej nie można teraz zmienić, ponieważ Remeha nie przekazała jej wartości ani limitów. Spróbuj ponownie po następnej aktualizacji."
+        }
+    },
+    "services": {
+        "set_holiday_mode": {
+            "name": "Ustaw tryb urlopowy",
+            "description": "Zaplanuj tryb urlopowy urządzenia. Remeha Home przechowuje tylko całe dni; w tym okresie urządzenie obniża ogrzewanie i ciepłą wodę do nastaw urlopowych.",
+            "fields": {
+                "start_date": {
+                    "name": "Data początkowa",
+                    "description": "Pierwszy dzień trybu urlopowego (wyjazd)."
+                },
+                "end_date": {
+                    "name": "Data końcowa",
+                    "description": "Dzień zakończenia trybu urlopowego (przyjazd)."
+                }
+            }
+        },
+        "cancel_holiday_mode": {
+            "name": "Anuluj tryb urlopowy",
+            "description": "Zatrzymaj trwający tryb urlopowy albo usuń zaplanowany."
+        },
+        "get_energy_history": {
+            "name": "Pobierz historię energii",
+            "description": "Pobierz orientacyjne dzienne dane energetyczne urządzenia Remeha bez zmiany ogrzewania ani tworzenia encji. Maksymalnie 366 dni na żądanie.",
+            "fields": {
+                "device_id": {
+                    "name": "Urządzenie Remeha",
+                    "description": "Wybierz urządzenie Remeha, pompę ciepła lub kocioł."
+                },
+                "start_date": {
+                    "name": "Data początkowa",
+                    "description": "Pierwszy dzień kalendarzowy do pobrania (włącznie), przed dzisiejszym dniem."
+                },
+                "end_date": {
+                    "name": "Data końcowa",
+                    "description": "Ostatni dzień kalendarzowy do pobrania (włącznie). Dzisiejszy dzień nie jest jeszcze kompletny, więc okres kończy się najpóźniej wczoraj."
+                }
+            }
+        },
+        "set_temporary_override": {
+            "name": "Ustaw tymczasową temperaturę",
+            "description": "Zastępuje na pewien czas program czasowy strefy inną temperaturą. Potem urządzenie samo wraca do programu czasowego, także gdy Home Assistant nie działa. Strefa musi być w trybie auto.",
+            "fields": {
+                "temperature": {
+                    "name": "Temperatura",
+                    "description": "Temperatura utrzymywana podczas nadpisania."
+                },
+                "duration": {
+                    "name": "Czas trwania",
+                    "description": "Jak długo utrzymywać temperaturę, od 1 minuty do 7 dni."
+                }
+            }
+        }
+    }
+}

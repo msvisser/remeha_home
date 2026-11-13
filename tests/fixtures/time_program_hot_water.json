@@ -1,0 +1,145 @@
+{
+  "timeProgramNumber": 1,
+  "switchPoints": [
+    {
+      "day": 0,
+      "time": "07:00",
+      "comfortActive": true
+    },
+    {
+      "day": 0,
+      "time": "09:30",
+      "comfortActive": false
+    },
+    {
+      "day": 0,
+      "time": "16:00",
+      "comfortActive": true
+    },
+    {
+      "day": 0,
+      "time": "19:30",
+      "comfortActive": false
+    },
+    {
+      "day": 1,
+      "time": "04:00",
+      "comfortActive": true
+    },
+    {
+      "day": 1,
+      "time": "06:00",
+      "comfortActive": false
+    },
+    {
+      "day": 1,
+      "time": "18:00",
+      "comfortActive": true
+    },
+    {
+      "day": 1,
+      "time": "20:30",
+      "comfortActive": false
+    },
+    {
+      "day": 2,
+      "time": "04:00",
+      "comfortActive": true
+    },
+    {
+      "day": 2,
+      "time": "06:00",
+      "comfortActive": false
+    },
+    {
+      "day": 2,
+      "time": "18:00",
+      "comfortActive": true
+    },
+    {
+      "day": 2,
+      "time": "20:30",
+      "comfortActive": false
+    },
+    {
+      "day": 3,
+      "time": "04:00",
+      "comfortActive": true
+    },
+    {
+      "day": 3,
+      "time": "06:00",
+      "comfortActive": false
+    },
+    {
+      "day": 3,
+      "time": "18:00",
+      "comfortActive": true
+    },
+    {
+      "day": 3,
+      "time": "20:30",
+      "comfortActive": false
+    },
+    {
+      "day": 4,
+      "time": "04:00",
+      "comfortActive": true
+    },
+    {
+      "day": 4,
+      "time": "06:00",
+      "comfortActive": false
+    },
+    {
+      "day": 4,
+      "time": "18:00",
+      "comfortActive": true
+    },
+    {
+      "day": 4,
+      "time": "20:30",
+      "comfortActive": false
+    },
+    {
+      "day": 5,
+      "time": "04:00",
+      "comfortActive": true
+    },
+    {
+      "day": 5,
+      "time": "06:00",
+      "comfortActive": false
+    },
+    {
+      "day": 5,
+      "time": "18:00",
+      "comfortActive": true
+    },
+    {
+      "day": 5,
+      "time": "20:30",
+      "comfortActive": false
+    },
+    {
+      "day": 6,
+      "time": "07:00",
+      "comfortActive": true
+    },
+    {
+      "day": 6,
+      "time": "09:30",
+      "comfortActive": false
+    },
+    {
+      "day": 6,
+      "time": "16:00",
+      "comfortActive": true
+    },
+    {
+      "day": 6,
+      "time": "19:30",
+      "comfortActive": false
+    }
+  ]
+}

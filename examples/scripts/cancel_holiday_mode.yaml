@@ -1,0 +1,8 @@
+# Cancel holiday mode: stops an active holiday or removes a scheduled one.
+# Replace binary_sensor.my_home_holiday_mode with your Holiday Mode sensor.
+alias: Cancel holiday mode
+icon: mdi:home-import-outline
+sequence:
+  - action: remeha_home.cancel_holiday_mode
+    target:
+      entity_id: binary_sensor.my_home_holiday_mode

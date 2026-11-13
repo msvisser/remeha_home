@@ -1,0 +1,11 @@
+{
+  "slope": 0.0,
+  "minimumSlope": 0.0,
+  "maximumSlope": 4.0,
+  "incrementSlope": 0.1,
+  "baseSetpoint": 15.0,
+  "minimumBaseSetpoint": 15.0,
+  "maximumBaseSetpoint": 35.0,
+  "incrementBaseSetpoint": 0.5,
+  "maxFlowTemperature": 35.0
+}

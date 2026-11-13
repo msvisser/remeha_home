@@ -1,49 +1,83 @@
 """API for Remeha Home bound to Home Assistant OAuth."""
 
+from __future__ import annotations
+
 import base64
-import datetime
+from datetime import UTC, date, datetime, timedelta
 import hashlib
 import json
 import logging
 import secrets
-import urllib
+import urllib.parse
 
 import asyncio
-from aiohttp import ClientSession
+from aiohttp import ClientSession, ClientTimeout
 
 from homeassistant.helpers.config_entry_oauth2_flow import (
     AbstractOAuth2Implementation,
     OAuth2Session,
 )
-from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
 
 from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
+# Home Assistant's shared session has no timeout of its own, so without one a request
+# could hang for aiohttp's default of 5 minutes and hold up the updates.
+REQUEST_TIMEOUT = 30
+
+# Holiday mode: POST /appliances/{id}/holidayschedule (ApplianceHolidayScheduleRequestDto
+# in the Remeha Home app), verified against the live API on 2026-10-22. The API keeps
+# whole days only (it stores <date>T00:00:01Z) and updates the dashboard a few
+# seconds after the request.
+HOLIDAY_START_KEY = "holidayModeStartTime"
+HOLIDAY_END_KEY = "holidayModeEndTime"
+# Cancelling has no endpoint of its own: the app posts the "null" timestamps. The
+# API requires start < end, so the start is one second before the empty value.
+HOLIDAY_CANCEL_BODY = {
+    HOLIDAY_START_KEY: "0001-01-01T00:00:00Z",
+    HOLIDAY_END_KEY: "0001-01-01T00:00:01Z",
+}
+
+
+def _error_message(text: str) -> str:
+    """Return the messages of a Remeha error response, or the start of the raw text.
+
+    Remeha answers with problem details, e.g. {"title": "Bad Request",
+    "errors": {"": ["Start Date must be before the End Date."]}}.
+    """
+    try:
+        body = json.loads(text)
+    except ValueError:
+        return text[:500]
+    if not isinstance(body, dict):
+        return text[:500]
+
+    errors = body.get("errors")
+    messages = []
+    if isinstance(errors, dict):
+        for field_messages in errors.values():
+            if isinstance(field_messages, list):
+                messages.extend(str(message) for message in field_messages)
+    return str(
+        " ".join(messages) or body.get("detail") or body.get("title") or text[:500]
+    )
+
 
 class RemehaHomeAPI:
     """Provide Remeha Home authentication tied to an OAuth2 based config entry."""
 
-    def __init__(
-        self,
-        oauth_session: OAuth2Session = None,
-    ) -> None:
+    def __init__(self, oauth_session: OAuth2Session) -> None:
         """Initialize Remeha Home auth."""
         self._oauth_session = oauth_session
-
-    async def async_get_access_token(self) -> str:
-        """Return a valid access token."""
-        if not self._oauth_session.valid_token:
-            await self._oauth_session.async_ensure_token_valid()
-
-        return self._oauth_session.token["access_token"]
 
     async def _async_api_request(self, method: str, path: str, **kwargs):
         headers = kwargs.pop("headers", {})
         return await self._oauth_session.async_request(
             method,
             "https://api.bdrthermea.net/Mobile/api" + path,
+            timeout=ClientTimeout(total=REQUEST_TIMEOUT),
             **kwargs,
             headers={
                 **headers,
@@ -54,7 +88,7 @@ class RemehaHomeAPI:
     async def async_get_dashboard(self) -> dict:
         """Return the Remeha Home dashboard JSON."""
         # Add a timestamp to the request to prevent caching
-        timestamp = int(datetime.datetime.now().timestamp())
+        timestamp = int(datetime.now().timestamp())
         response = await self._async_api_request(
             "GET", f"/homes/dashboard?t={timestamp}"
         )
@@ -86,14 +120,22 @@ class RemehaHomeAPI:
         )
         response.raise_for_status()
 
-    async def async_set_temporary_override(self, climate_zone_id: str, setpoint: float):
-        """Set a temporary temperature override for the current schedule in a climate zone."""
+    async def async_set_temporary_override(
+        self, climate_zone_id: str, setpoint: float, end_time: datetime | None = None
+    ):
+        """Set a temporary temperature override for the current schedule in a climate zone.
+
+        Without an end time the override lasts until the next switch of the clock
+        program. With an end time the appliance ends it at that time by itself. The end
+        time is sent in UTC, like the API reports temporaryOverride.endTime.
+        """
+        payload: dict = {"roomTemperatureSetPoint": setpoint}
+        if end_time is not None:
+            payload["endTime"] = end_time.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
         response = await self._async_api_request(
             "POST",
             f"/climate-zones/{climate_zone_id}/modes/temporary-override",
-            json={
-                "roomTemperatureSetPoint": setpoint,
-            },
+            json=payload,
         )
         response.raise_for_status()
 
@@ -124,6 +166,119 @@ class RemehaHomeAPI:
         )
         response.raise_for_status()
 
+    async def async_set_pre_heat(
+        self, appliance_id: str, enabled_by_zone: dict[str, bool]
+    ) -> None:
+        """Turn pre-heat on or off for the climate zones of an appliance.
+
+        The request lists every climate zone of the appliance with whether pre-heat
+        is enabled, so pass the current value of the zones that don't change.
+        """
+        response = await self._async_api_request(
+            "POST",
+            f"/appliances/{appliance_id}/preheat",
+            json={
+                "climateZones": [
+                    {"climateZoneId": zone_id, "preHeatEnabled": enabled}
+                    for zone_id, enabled in enabled_by_zone.items()
+                ]
+            },
+        )
+        response.raise_for_status()
+
+    async def async_get_heating_curve(self, climate_zone_id: str) -> dict:
+        """Get the heating curve parameters for a climate zone."""
+        response = await self._async_api_request(
+            "GET",
+            f"/climate-zones/{climate_zone_id}/heating-curve",
+        )
+        response.raise_for_status()
+        return await response.json()
+
+    async def async_set_heating_curve(
+        self, climate_zone_id: str, slope: float, base_setpoint: float
+    ) -> None:
+        """Set the heating curve for a climate zone."""
+        response = await self._async_api_request(
+            "POST",
+            f"/climate-zones/{climate_zone_id}/heating-curve",
+            json={"slope": slope, "baseSetpoint": base_setpoint},
+        )
+        response.raise_for_status()
+
+    async def async_get_activities(self, climate_zone_id: str) -> list:
+        """Get the activity definitions for a climate zone."""
+        response = await self._async_api_request(
+            "GET",
+            f"/climate-zones/{climate_zone_id}/activities",
+        )
+        response.raise_for_status()
+        return await response.json()
+
+    async def async_get_heating_time_program(
+        self, climate_zone_id: str, time_program_id: int
+    ) -> dict:
+        """Get the switching points of a heating clock program of a climate zone."""
+        response = await self._async_api_request(
+            "GET",
+            f"/climate-zones/{climate_zone_id}/time-programs/heating/{time_program_id}",
+        )
+        response.raise_for_status()
+        return await response.json()
+
+    async def async_get_hot_water_time_program(
+        self, hot_water_zone_id: str, time_program_id: int
+    ) -> dict:
+        """Get the switching points of a clock program of a hot water zone."""
+        response = await self._async_api_request(
+            "GET",
+            f"/hot-water-zones/{hot_water_zone_id}/time-programs/{time_program_id}",
+        )
+        response.raise_for_status()
+        return await response.json()
+
+    async def async_set_heating_activities(
+        self, climate_zone_id: str, activities: list[dict]
+    ) -> None:
+        """Set the heating activity temperatures for a climate zone."""
+        response = await self._async_api_request(
+            "PUT",
+            f"/climate-zones/{climate_zone_id}/activities/heating",
+            json=activities,
+        )
+        response.raise_for_status()
+
+    async def _async_post_holiday_schedule(self, appliance_id: str, body: dict):
+        """Post a holiday schedule, raising Remeha's own message when it is rejected."""
+        response = await self._async_api_request(
+            "POST", f"/appliances/{appliance_id}/holidayschedule", json=body
+        )
+        if response.status >= 400:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="holiday_request_rejected",
+                translation_placeholders={
+                    "status": str(response.status),
+                    "message": _error_message(await response.text()),
+                },
+            )
+
+    async def async_set_holiday_schedule(
+        self, appliance_id: str, start_date: date, end_date: date
+    ) -> None:
+        """Schedule holiday mode for an appliance from start_date to end_date."""
+        await self._async_post_holiday_schedule(
+            appliance_id,
+            {
+                HOLIDAY_START_KEY: f"{start_date.isoformat()}T00:00:00Z",
+                HOLIDAY_END_KEY: f"{end_date.isoformat()}T00:00:00Z",
+            },
+        )
+
+    async def async_cancel_holiday_schedule(self, appliance_id: str) -> None:
+        """Cancel an active or scheduled holiday mode."""
+        await self._async_post_holiday_schedule(appliance_id, HOLIDAY_CANCEL_BODY)
+
     async def async_get_appliance_technical_information(
         self, appliance_id: str
     ) -> dict:
@@ -137,10 +292,10 @@ class RemehaHomeAPI:
 
     async def async_get_consumption_data_for_today(self, appliance_id: str) -> dict:
         """Get technical information for an appliance."""
-        today = datetime.datetime.now().replace(
+        today = datetime.now().replace(
             hour=0, minute=0, second=0, microsecond=0
         )
-        end_of_today = today + datetime.timedelta(hours=23, minutes=59, seconds=59)
+        end_of_today = today + timedelta(hours=23, minutes=59, seconds=59)
 
         today_string = today.strftime("%Y-%m-%d %H:%M:%S.%fZ")
         end_of_today_string = end_of_today.strftime("%Y-%m-%d %H:%M:%S.%fZ")
@@ -151,6 +306,83 @@ class RemehaHomeAPI:
         )
         response.raise_for_status()
         return await response.json()
+
+    async def async_get_consumption_data_for_range(
+        self, appliance_id: str, start_date: date, end_date: date
+    ) -> dict:
+        """Get read-only daily energy history for an inclusive date range.
+
+        The existing today poll is intentionally unchanged. Dates here are
+        calendar dates, and both bounds are included in the API request.
+        """
+        start = f"{start_date.isoformat()}T00:00:00.000Z"
+        end = f"{end_date.isoformat()}T23:59:59.999Z"
+        response = await self._async_api_request(
+            "GET",
+            f"/appliances/{appliance_id}/energyconsumption/daily",
+            params={"startDate": start, "endDate": end},
+        )
+        response.raise_for_status()
+        return await response.json()
+
+    async def async_set_dhw_comfort_setpoint(
+        self, hot_water_zone_id: str, setpoint: float
+    ):
+        """Set the comfort (continuous) target temperature for a DHW zone."""
+        response = await self._async_api_request(
+            "POST",
+            f"/hot-water-zones/{hot_water_zone_id}/comfort-setpoint",
+            json={"comfortSetpoint": setpoint},
+        )
+        response.raise_for_status()
+
+    async def async_set_dhw_reduced_setpoint(
+        self, hot_water_zone_id: str, setpoint: float
+    ):
+        """Set the eco/reduced target temperature for a DHW zone."""
+        response = await self._async_api_request(
+            "POST",
+            f"/hot-water-zones/{hot_water_zone_id}/reduced-setpoint",
+            json={"reducedSetpoint": setpoint},
+        )
+        response.raise_for_status()
+
+    async def async_set_dhw_mode_eco(self, hot_water_zone_id: str):
+        """Switch the DHW zone to eco (anti-frost) mode."""
+        response = await self._async_api_request(
+            "POST",
+            f"/hot-water-zones/{hot_water_zone_id}/modes/anti-frost",
+        )
+        response.raise_for_status()
+
+    async def async_set_dhw_mode_schedule(self, hot_water_zone_id: str):
+        """Switch the DHW zone to schedule mode."""
+        response = await self._async_api_request(
+            "POST",
+            f"/hot-water-zones/{hot_water_zone_id}/modes/schedule",
+        )
+        response.raise_for_status()
+
+    async def async_set_dhw_mode_comfort(self, hot_water_zone_id: str):
+        """Switch the DHW zone to continuous comfort mode."""
+        response = await self._async_api_request(
+            "POST",
+            f"/hot-water-zones/{hot_water_zone_id}/modes/continuous-comfort",
+        )
+        response.raise_for_status()
+
+    async def async_set_hot_water_boost(self, hot_water_zone_id: str):
+        """Activate boost mode for a DHW zone.
+
+        Boost heats the water to the comfort setpoint for ~30 minutes. The API
+        only accepts this from schedule mode and takes no request body, like the
+        other DHW mode endpoints. Boost is cancelled by switching to another mode.
+        """
+        response = await self._async_api_request(
+            "POST",
+            f"/hot-water-zones/{hot_water_zone_id}/modes/boost",
+        )
+        response.raise_for_status()
 
 
 class RemehaHomeAuthFailed(Exception):
@@ -268,7 +500,8 @@ class RemehaHomeOAuth2Implementation(AbstractOAuth2Implementation):
             # Parse the callback url for the authorization code
             parsed_callback_url = urllib.parse.urlparse(response.headers["location"])
             query_string_dict = urllib.parse.parse_qs(parsed_callback_url.query)
-            authorization_code = query_string_dict["code"]
+            # parse_qs returns a list of values for each parameter
+            authorization_code = query_string_dict["code"][0]
 
             # Request a new token with the authorization code
             grant_params = {
@@ -304,10 +537,15 @@ class RemehaHomeOAuth2Implementation(AbstractOAuth2Implementation):
             #       problem has not been found, but this workaround allows you to reauthenticate at least. Otherwise
             #       Home Assitant would get stuck on refreshing the token forever.
             if response.status == 400:
-                response_json = await response.json()
+                # Usually JSON with an error_description, but not always
+                try:
+                    response_json = await response.json(content_type=None)
+                    description = response_json.get("error_description")
+                except (ValueError, AttributeError):
+                    description = None
                 _LOGGER.error(
                     "OAuth2 token request returned '400 Bad Request': %s",
-                    response_json["error_description"],
+                    description or "no error description",
                 )
                 raise ConfigEntryAuthFailed
 

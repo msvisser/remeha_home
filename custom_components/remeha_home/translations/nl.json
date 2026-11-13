@@ -1,17 +1,24 @@
 {
     "config": {
         "abort": {
-            "failed_to_authenticate": "Authentificeren mislukt"
+            "already_configured": "Dit Remeha Home-account is al ingesteld",
+            "failed_to_authenticate": "Authentificeren mislukt",
+            "reauth_successful": "Opnieuw inloggen is gelukt",
+            "wrong_account": "Log in met het Remeha Home-account dat eerder is ingesteld. Wil je een ander account gebruiken, verwijder dan de integratie en voeg hem opnieuw toe."
         },
         "error": {
             "failed_to_authenticate": "Verkeerd e-mailadres en/of wachtwoord"
         },
         "step": {
             "auth": {
+                "description": "Stel de Remeha Home-integratie in met de inloggegevens van je Remeha Home-account.",
                 "data": {
                     "email": "E-mailadres",
                     "password": "Wachtwoord"
                 }
+            },
+            "reauth_confirm": {
+                "description": "Het toegangstoken van Remeha Home kon niet worden vernieuwd. Log opnieuw in met je Remeha Home-gegevens om deze integratie te blijven gebruiken."
             }
         }
     },
@@ -24,10 +31,133 @@
                             "clock_program_1": "Klokprogramma 1",
                             "clock_program_2": "Klokprogramma 2",
                             "clock_program_3": "Klokprogramma 3",
-                            "anti_frost": "Vorst bescherming",
+                            "anti_frost": "Vorstbescherming",
                             "manual": "Handmatig"
                         }
                     }
+                }
+            }
+        },
+        "water_heater": {
+            "remeha_home_dhw": {
+                "state": {
+                    "heat_pump": "Schema",
+                    "performance": "Comfort",
+                    "eco": "Eco",
+                    "high_demand": "Boost"
+                },
+                "state_attributes": {
+                    "current_temperature": {
+                        "name": "Huidige temperatuur"
+                    }
+                }
+            }
+        },
+        "number": {
+            "heating_curve_slope": {
+                "name": "Stooklijn helling"
+            },
+            "heating_curve_base_setpoint": {
+                "name": "Stooklijn voetpunt"
+            }
+        },
+        "sensor": {
+            "heating_curve_max_flow_temperature": {
+                "name": "Stooklijn maximale aanvoertemperatuur"
+            },
+            "clock_program": {
+                "name": "Klokprogramma",
+                "state": {
+                    "clock_program_1": "Klokprogramma 1",
+                    "clock_program_2": "Klokprogramma 2",
+                    "clock_program_3": "Klokprogramma 3"
+                }
+            }
+        }
+    },
+    "exceptions": {
+        "set_temperature_while_off": {
+            "message": "Kan geen temperatuur instellen terwijl de zone op vorstbeveiliging staat. Wijzig eerst de modus, of geef `hvac_mode` mee samen met de temperatuur."
+        },
+        "boost_requires_schedule": {
+            "message": "Boost kan alleen worden gestart als de warmwaterzone op Schema staat."
+        },
+        "eco_setpoint_requires_tank": {
+            "message": "De Eco-temperatuur kan alleen worden aangepast bij een warmwatertank. Een combiketel houdt in Eco geen water warm, dus er is geen temperatuur om in te stellen."
+        },
+        "holiday_end_before_start": {
+            "message": "De einddatum moet na de begindatum liggen."
+        },
+        "holiday_end_in_past": {
+            "message": "De einddatum moet na vandaag liggen."
+        },
+        "holiday_mode_wrong_entity": {
+            "message": "{entity_id} is geen vakantiemodus-sensor. Kies de sensor Holiday Mode van het toestel."
+        },
+        "holiday_request_rejected": {
+            "message": "Remeha Home heeft het vakantiemodus-verzoek geweigerd ({status}): {message}"
+        },
+        "temporary_override_not_supported": {
+            "message": "{entity_id} ondersteunt geen tijdelijke temperatuur met een eindtijd."
+        },
+        "temporary_override_requires_auto": {
+            "message": "Een tijdelijke temperatuur werkt alleen als {entity_id} het klokprogramma volgt. Zet de zone eerst op auto."
+        },
+        "temperature_out_of_range": {
+            "message": "{temperature} °C valt buiten het bereik van de zone ({min_temp} tot {max_temp} °C)."
+        },
+        "heating_curve_unavailable": {
+            "message": "De stooklijn kan nu niet worden gewijzigd, omdat Remeha de waarden of grenzen niet heeft doorgegeven. Probeer het na de volgende update opnieuw."
+        }
+    },
+    "services": {
+        "set_holiday_mode": {
+            "name": "Vakantiemodus instellen",
+            "description": "Plan de vakantiemodus voor het toestel. Remeha Home bewaart alleen hele dagen; in deze periode gebruikt het toestel de vakantie-instellingen voor verwarming en warm water.",
+            "fields": {
+                "start_date": {
+                    "name": "Begindatum",
+                    "description": "Eerste dag van de vakantiemodus (vertrek)."
+                },
+                "end_date": {
+                    "name": "Einddatum",
+                    "description": "Dag waarop de vakantiemodus eindigt (aankomst)."
+                }
+            }
+        },
+        "cancel_holiday_mode": {
+            "name": "Vakantiemodus stoppen",
+            "description": "Stop een actieve vakantiemodus of verwijder een geplande."
+        },
+        "get_energy_history": {
+            "name": "Energiehistorie ophalen",
+            "description": "Vraag de indicatieve dagelijkse energiegegevens van het gekozen Remeha-toestel op. Deze alleen-lezen actie maakt geen entiteiten aan en wijzigt de verwarming niet. Maximaal 366 dagen per aanvraag.",
+            "fields": {
+                "device_id": {
+                    "name": "Remeha-toestel",
+                    "description": "Kies het Remeha-toestel of de bijbehorende warmtepomp of gasketel."
+                },
+                "start_date": {
+                    "name": "Begindatum",
+                    "description": "Eerste kalenderdag (inclusief), vóór vandaag."
+                },
+                "end_date": {
+                    "name": "Einddatum",
+                    "description": "Laatste kalenderdag (inclusief). Vandaag is nog niet compleet, dus de periode eindigt uiterlijk gisteren."
+                }
+            }
+        },
+        "set_temporary_override": {
+            "name": "Tijdelijke temperatuur instellen",
+            "description": "Vervang het klokprogramma van de zone een tijdje door een andere temperatuur. Daarna gaat het toestel zelf terug naar het klokprogramma, ook als Home Assistant niet draait. De zone moet in de stand auto staan.",
+            "fields": {
+                "temperature": {
+                    "name": "Temperatuur",
+                    "description": "Temperatuur die tijdens de override wordt aangehouden."
+                },
+                "duration": {
+                    "name": "Duur",
+                    "description": "Hoe lang de temperatuur wordt aangehouden, van 1 minuut tot 7 dagen."
                 }
             }
         }

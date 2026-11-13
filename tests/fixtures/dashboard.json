@@ -1,0 +1,116 @@
+{
+  "appliances": [
+    {
+      "applianceId": "00000000-0000-0000-0000-00000000a001",
+      "applianceOnline": true,
+      "applianceConnectionStatus": "Connected",
+      "applianceType": "HeatPump",
+      "pairingStatus": "Paired",
+      "houseName": "Home",
+      "errorStatus": "Running",
+      "activeThermalMode": "Idle",
+      "operatingMode": "AutomaticHeating",
+      "outdoorTemperatureInformation": {
+        "outdoorTemperatureSource": "Wired",
+        "internetOutdoorTemperature": null,
+        "applianceOutdoorTemperature": 14.5,
+        "utilizeOutdoorTemperature": null,
+        "internetOutdoorTemperatureExpected": false,
+        "isDayTime": true,
+        "weatherCode": "patchy light rain",
+        "cloudOutdoorTemperature": 10,
+        "cloudOutdoorTemperatureStatus": "Ok"
+      },
+      "currentTimestamp": null,
+      "holidaySchedule": {
+        "startTime": "0001-01-01T00:00:01Z",
+        "endTime": "0001-01-01T00:00:01Z",
+        "active": false
+      },
+      "autoFillingMode": "NotAvailable",
+      "autoFilling": {
+        "mode": "NotAvailable",
+        "status": "NotAvailable"
+      },
+      "waterPressure": 1.7,
+      "waterPressureOK": true,
+      "capabilityEnergyConsumption": true,
+      "capabilityCooling": false,
+      "capabilityPreHeat": true,
+      "capabilityMultiSchedule": true,
+      "capabilityPowerSettings": false,
+      "capabilityOutdoorTemperature": true,
+      "capabilityUtilizeOutdoorTemperature": false,
+      "capabilityInternetOutdoorTemperatureExpected": false,
+      "capabilityDhwOptimization": false,
+      "hasOverwrittenActivityNames": true,
+      "gasCalorificValue": 8.7917,
+      "isActive": true,
+      "timeZone": "Europe/Amsterdam",
+      "seasonalMode": "Winter",
+      "hotWaterZones": [
+        {
+          "hotWaterZoneId": "00000000-0000-0000-0000-00000000d001",
+          "applianceId": "00000000-0000-0000-0000-00000000a001",
+          "name": "DHW",
+          "zoneType": "DHW",
+          "dhwZoneMode": "Scheduling",
+          "dhwStatus": "Idle",
+          "dhwType": "Combi",
+          "nextSwitchActivity": "Comfort",
+          "capabilityBoostMode": true,
+          "dhwTemperature": null,
+          "targetSetpoint": 60.0,
+          "reducedSetpoint": 10.0,
+          "comfortSetPoint": 60.0,
+          "setPointMin": 40.0,
+          "setPointMax": 65.0,
+          "setPointRanges": {
+            "comfortSetpointMin": 40.0,
+            "comfortSetpointMax": 65.0,
+            "reducedSetpointMin": 10.0,
+            "reducedSetpointMax": 60.0
+          },
+          "boostDuration": null,
+          "boostModeEndTime": null,
+          "nextSwitchTime": "2026-10-22T23:00:00Z",
+          "activeDwhTimeProgramNumber": 1,
+          "optimizationEnabled": false,
+          "antiLegionellaEnabled": null
+        }
+      ],
+      "climateZones": [
+        {
+          "climateZoneId": "00000000-0000-0000-0000-00000000c001",
+          "applianceId": "00000000-0000-0000-0000-00000000a001",
+          "name": "Woonkamer",
+          "zoneIcon": 3,
+          "zoneType": "CH",
+          "activeComfortDemand": "Idle",
+          "zoneMode": "Manual",
+          "controlStrategy": "RoomTemperatureOnly",
+          "firePlaceModeActive": false,
+          "capabilityFirePlaceMode": true,
+          "roomTemperature": 20.0,
+          "setPoint": 20.0,
+          "nextSetpoint": 20.0,
+          "nextSwitchTime": "2026-10-22T22:00:00Z",
+          "setPointMin": 5.0,
+          "setPointMax": 30.0,
+          "currentScheduleSetPoint": 20.0,
+          "activeHeatingClimateTimeProgramNumber": 1,
+          "capabilityCooling": false,
+          "capabilityTemporaryOverrideEndTime": true,
+          "preHeat": {
+            "enabled": false,
+            "active": false
+          },
+          "temporaryOverride": {
+            "endTime": "0001-01-01T00:00:00Z"
+          }
+        }
+      ],
+      "solarThermals": []
+    }
+  ]
+}

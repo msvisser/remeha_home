@@ -1,17 +1,24 @@
 {
     "config": {
         "abort": {
-            "failed_to_authenticate": "Authentification interrompue"
+            "already_configured": "Ce compte Remeha Home est déjà configuré",
+            "failed_to_authenticate": "Authentification interrompue",
+            "reauth_successful": "La réauthentification a réussi",
+            "wrong_account": "Connectez-vous avec le compte Remeha Home configuré auparavant. Pour utiliser un autre compte, supprimez l'intégration et ajoutez-la à nouveau."
         },
         "error": {
             "failed_to_authenticate": "Adresse email ou mot de passe invalide"
         },
         "step": {
             "auth": {
+                "description": "Configurez l'intégration Remeha Home avec les identifiants de votre compte Remeha Home.",
                 "data": {
-                    "email": "Addresse e-mail",
+                    "email": "Adresse e-mail",
                     "password": "Mot de passe"
                 }
+            },
+            "reauth_confirm": {
+                "description": "Impossible d'actualiser le jeton d'accès Remeha Home. Reconnectez-vous avec vos identifiants Remeha Home pour continuer à utiliser cette intégration."
             }
         }
     },
@@ -28,6 +35,129 @@
                             "manual": "Manuel"
                         }
                     }
+                }
+            }
+        },
+        "water_heater": {
+            "remeha_home_dhw": {
+                "state": {
+                    "heat_pump": "Programme",
+                    "performance": "Confort",
+                    "eco": "Éco",
+                    "high_demand": "Boost"
+                },
+                "state_attributes": {
+                    "current_temperature": {
+                        "name": "Température actuelle"
+                    }
+                }
+            }
+        },
+        "number": {
+            "heating_curve_slope": {
+                "name": "Pente de la courbe de chauffe"
+            },
+            "heating_curve_base_setpoint": {
+                "name": "Pied de la courbe de chauffe"
+            }
+        },
+        "sensor": {
+            "heating_curve_max_flow_temperature": {
+                "name": "Température de départ maximale de la courbe de chauffe"
+            },
+            "clock_program": {
+                "name": "Programme horaire",
+                "state": {
+                    "clock_program_1": "Programme 1",
+                    "clock_program_2": "Programme 2",
+                    "clock_program_3": "Programme 3"
+                }
+            }
+        }
+    },
+    "exceptions": {
+        "set_temperature_while_off": {
+            "message": "Impossible de régler une température lorsque la zone est en mode hors-gel. Changez d'abord le mode, ou indiquez `hvac_mode` avec la température."
+        },
+        "boost_requires_schedule": {
+            "message": "Le boost ne peut être lancé que lorsque la zone d'eau chaude est en mode Programme."
+        },
+        "eco_setpoint_requires_tank": {
+            "message": "La température Éco ne peut être modifiée que pour un ballon d'eau chaude. Une chaudière mixte ne maintient pas l'eau chaude en mode Éco, il n'y a donc pas de température à régler."
+        },
+        "holiday_end_before_start": {
+            "message": "La date de fin doit être postérieure à la date de début."
+        },
+        "holiday_end_in_past": {
+            "message": "La date de fin doit être postérieure à aujourd'hui."
+        },
+        "holiday_mode_wrong_entity": {
+            "message": "{entity_id} n'est pas un capteur de mode vacances. Choisissez le capteur Holiday Mode de l'appareil."
+        },
+        "holiday_request_rejected": {
+            "message": "Remeha Home a refusé la demande de mode vacances ({status}) : {message}"
+        },
+        "temporary_override_not_supported": {
+            "message": "{entity_id} ne prend pas en charge une température temporaire avec une heure de fin."
+        },
+        "temporary_override_requires_auto": {
+            "message": "Une température temporaire ne fonctionne que si {entity_id} suit le programme horaire. Passez d'abord la zone en mode auto."
+        },
+        "temperature_out_of_range": {
+            "message": "{temperature} °C est en dehors de la plage de la zone ({min_temp} à {max_temp} °C)."
+        },
+        "heating_curve_unavailable": {
+            "message": "La courbe de chauffe ne peut pas être modifiée maintenant, car Remeha n'a pas transmis ses valeurs ou ses limites. Réessayez après la prochaine mise à jour."
+        }
+    },
+    "services": {
+        "set_holiday_mode": {
+            "name": "Activer le mode vacances",
+            "description": "Planifier le mode vacances de l'appareil. Remeha Home ne conserve que des jours entiers ; pendant cette période, l'appareil abaisse le chauffage et l'eau chaude aux consignes vacances.",
+            "fields": {
+                "start_date": {
+                    "name": "Date de début",
+                    "description": "Premier jour du mode vacances (départ)."
+                },
+                "end_date": {
+                    "name": "Date de fin",
+                    "description": "Jour de fin du mode vacances (retour)."
+                }
+            }
+        },
+        "cancel_holiday_mode": {
+            "name": "Annuler le mode vacances",
+            "description": "Arrêter un mode vacances actif ou supprimer un mode vacances planifié."
+        },
+        "get_energy_history": {
+            "name": "Obtenir l'historique énergétique",
+            "description": "Récupérer les estimations quotidiennes indicatives du dispositif Remeha sélectionné, sans modifier le chauffage ni créer d'entités. Maximum 366 jours par demande.",
+            "fields": {
+                "device_id": {
+                    "name": "Appareil Remeha",
+                    "description": "Choisir l'appareil Remeha, sa pompe à chaleur ou sa chaudière."
+                },
+                "start_date": {
+                    "name": "Date de début",
+                    "description": "Premier jour calendaire à récupérer (inclus), avant aujourd'hui."
+                },
+                "end_date": {
+                    "name": "Date de fin",
+                    "description": "Dernier jour calendaire à récupérer (inclus). Aujourd'hui n'est pas encore complet, la période se termine donc au plus tard hier."
+                }
+            }
+        },
+        "set_temporary_override": {
+            "name": "Définir une température temporaire",
+            "description": "Remplace pendant un moment le programme horaire de la zone par une autre température. Ensuite, l'appareil revient de lui-même au programme horaire, même si Home Assistant ne fonctionne pas. La zone doit être en mode auto.",
+            "fields": {
+                "temperature": {
+                    "name": "Température",
+                    "description": "Température à maintenir pendant la dérogation."
+                },
+                "duration": {
+                    "name": "Durée",
+                    "description": "Durée pendant laquelle la température est maintenue, de 1 minute à 7 jours."
                 }
             }
         }

@@ -1,0 +1,110 @@
+name: Report a bug
+description: Something in the Remeha Home integration doesn't work as expected.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Please search the [existing issues](https://github.com/hugo-leij/remeha_home/issues) first, to see if it has already been reported.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What did you expect, and what happened instead?
+      placeholder: When I [...], the integration [...] instead of [...].
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: How can we make the problem happen?
+      placeholder: |
+        1. Go to...
+        2. Click on...
+        3. See...
+    validations:
+      required: false
+
+  - type: dropdown
+    id: appliance
+    attributes:
+      label: Appliance type
+      description: What kind of Remeha appliance do you have?
+      options:
+        - Heat pump
+        - Hybrid (heat pump with a gas boiler)
+        - Gas boiler
+        - Other or don't know
+    validations:
+      required: true
+
+  - type: input
+    id: model
+    attributes:
+      label: Appliance model
+      description: The model of your appliance, if you know it.
+      placeholder: e.g. Elga Ace, Mercuria Ace, Calenta Ace
+    validations:
+      required: false
+
+  - type: input
+    id: version_integration
+    attributes:
+      label: Integration version
+      description: The version of this integration, see HACS or Settings → Devices & services → Remeha Home.
+      placeholder: e.g. v0.4.0
+    validations:
+      required: true
+
+  - type: input
+    id: version_ha
+    attributes:
+      label: Home Assistant version
+      description: See Settings → About.
+      placeholder: e.g. 2026.10.1
+    validations:
+      required: true
+
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: |
+        The diagnostics show the data that the integration gets from Remeha, which helps most to find the cause.
+        Go to Settings → Devices & services → Remeha Home, choose ⋮ → Download diagnostics, and drag the file into this field.
+        Your email address, the login token, the names of your home and zones, and the serial numbers are left out of the file.
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: |
+        Error messages from Settings → System → Logs.
+        A debug log helps most: go to Settings → Devices & services → Remeha Home, choose ⋮ → Enable debug logging, make the problem happen, and choose Disable debug logging. Your browser then downloads the log.
+        Remove personal details from the log before you paste it.
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional information
+      description: Anything else that helps, such as screenshots.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched the existing issues, and this bug hasn't been reported yet.
+          required: true
+        - label: I use the latest version of the integration.
+          required: true

@@ -1,7 +1,10 @@
 {
     "config": {
         "abort": {
-            "failed_to_authenticate": "Failed to authenticate"
+            "already_configured": "This Remeha Home account is already set up",
+            "failed_to_authenticate": "Failed to authenticate",
+            "reauth_successful": "Re-authentication was successful",
+            "wrong_account": "Log in with the Remeha Home account that was set up before. To switch to another account, delete the integration and add it again."
         },
         "error": {
             "failed_to_authenticate": "Invalid email address and/or password"
@@ -32,6 +35,129 @@
                             "manual": "Manual"
                         }
                     }
+                }
+            }
+        },
+        "water_heater": {
+            "remeha_home_dhw": {
+                "state": {
+                    "heat_pump": "Schedule",
+                    "performance": "Comfort",
+                    "eco": "Eco",
+                    "high_demand": "Boost"
+                },
+                "state_attributes": {
+                    "current_temperature": {
+                        "name": "Current temperature"
+                    }
+                }
+            }
+        },
+        "number": {
+            "heating_curve_slope": {
+                "name": "Heating curve slope"
+            },
+            "heating_curve_base_setpoint": {
+                "name": "Heating curve base temperature"
+            }
+        },
+        "sensor": {
+            "heating_curve_max_flow_temperature": {
+                "name": "Heating curve maximum flow temperature"
+            },
+            "clock_program": {
+                "name": "Clock program",
+                "state": {
+                    "clock_program_1": "Schedule 1",
+                    "clock_program_2": "Schedule 2",
+                    "clock_program_3": "Schedule 3"
+                }
+            }
+        }
+    },
+    "exceptions": {
+        "set_temperature_while_off": {
+            "message": "Cannot set a temperature while the zone is in frost protection. Change the HVAC mode first, or pass `hvac_mode` together with the temperature."
+        },
+        "boost_requires_schedule": {
+            "message": "Boost can only be started while the hot water zone is in Schedule mode."
+        },
+        "eco_setpoint_requires_tank": {
+            "message": "The Eco temperature can only be changed for a hot water tank. A combi boiler doesn't keep water warm in Eco, so there is no temperature to set."
+        },
+        "holiday_end_before_start": {
+            "message": "The end date must be after the start date."
+        },
+        "holiday_end_in_past": {
+            "message": "The end date must be after today."
+        },
+        "holiday_mode_wrong_entity": {
+            "message": "{entity_id} is not a holiday mode sensor. Choose the Holiday Mode sensor of the appliance."
+        },
+        "holiday_request_rejected": {
+            "message": "Remeha Home rejected the holiday mode request ({status}): {message}"
+        },
+        "temporary_override_not_supported": {
+            "message": "{entity_id} doesn't support a temporary temperature with an end time."
+        },
+        "temporary_override_requires_auto": {
+            "message": "A temporary temperature only works while {entity_id} follows the clock program. Set the zone to auto first."
+        },
+        "temperature_out_of_range": {
+            "message": "{temperature} °C is outside the range of the zone ({min_temp} to {max_temp} °C)."
+        },
+        "heating_curve_unavailable": {
+            "message": "The heating curve can't be changed now, because Remeha didn't report its values or limits. Try again after the next update."
+        }
+    },
+    "services": {
+        "set_holiday_mode": {
+            "name": "Set holiday mode",
+            "description": "Schedule holiday mode for the appliance. Remeha Home keeps whole days only; the appliance lowers heating and hot water to its holiday setpoints in this period.",
+            "fields": {
+                "start_date": {
+                    "name": "Start date",
+                    "description": "First day of holiday mode (departure)."
+                },
+                "end_date": {
+                    "name": "End date",
+                    "description": "Day holiday mode ends (arrival)."
+                }
+            }
+        },
+        "cancel_holiday_mode": {
+            "name": "Cancel holiday mode",
+            "description": "Stop an active holiday mode or remove a scheduled one."
+        },
+        "get_energy_history": {
+            "name": "Get energy history",
+            "description": "Retrieve Remeha's indicative daily energy estimates for the selected appliance. This read-only action returns data without creating entities or changing your heating settings. Up to 366 days per request.",
+            "fields": {
+                "device_id": {
+                    "name": "Remeha device",
+                    "description": "Choose the Remeha appliance or its heat-pump/boiler device."
+                },
+                "start_date": {
+                    "name": "Start date",
+                    "description": "First calendar day to retrieve (inclusive), before today."
+                },
+                "end_date": {
+                    "name": "End date",
+                    "description": "Last calendar day to retrieve (inclusive). Today isn't complete yet, so the period ends yesterday at the latest."
+                }
+            }
+        },
+        "set_temporary_override": {
+            "name": "Set temporary temperature",
+            "description": "Override the clock program of the zone with another temperature for a while. Afterwards the appliance returns to the clock program by itself, also when Home Assistant isn't running. The zone must be in auto mode.",
+            "fields": {
+                "temperature": {
+                    "name": "Temperature",
+                    "description": "Temperature to hold during the override."
+                },
+                "duration": {
+                    "name": "Duration",
+                    "description": "How long to hold the temperature, from 1 minute up to 7 days."
                 }
             }
         }

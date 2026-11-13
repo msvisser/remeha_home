@@ -1,0 +1,38 @@
+{
+  "producerPerformanceStatistics": {
+    "producers": [
+      {
+        "isMigratedFromLegacy": false,
+        "instanceWithinDevice": 1,
+        "deviceIndex": "**REDACTED**",
+        "producerType": "HeatPumpAirSource",
+        "energyType": "Electric",
+        "energyConsumptionCH": 3.6,
+        "energyConsumptionDHW": 0,
+        "energyConsumptionCooling": 0,
+        "energyConsumptionTotal": 3.6,
+        "energyProductionCH": 17.8,
+        "energyProductionDHW": 0,
+        "energyProductionCooling": 0,
+        "energyProductionTotal": 17.8,
+        "seasonalEfficiency": 5.2
+      },
+      {
+        "isMigratedFromLegacy": false,
+        "instanceWithinDevice": 1,
+        "deviceIndex": "**REDACTED**",
+        "producerType": "GasBoiler",
+        "energyType": "NaturalGas",
+        "energyConsumptionCH": 0.0,
+        "energyConsumptionDHW": 0.0,
+        "energyConsumptionCooling": 0,
+        "energyConsumptionTotal": 0,
+        "energyProductionCH": 0.0,
+        "energyProductionDHW": 0.0,
+        "energyProductionCooling": 0.0,
+        "energyProductionTotal": 0.0,
+        "seasonalEfficiency": null
+      }
+    ]
+  }
+}

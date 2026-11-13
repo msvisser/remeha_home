@@ -1,0 +1,92 @@
+[
+  {
+    "activityNumber": 1,
+    "type": "Cooling",
+    "name": "Thuis",
+    "temperature": 30.0,
+    "setPointMin": 20.0,
+    "setPointMax": 30.0,
+    "increment": 0.5
+  },
+  {
+    "activityNumber": 2,
+    "type": "Cooling",
+    "name": "Slapen",
+    "temperature": 25.0,
+    "setPointMin": 20.0,
+    "setPointMax": 30.0,
+    "increment": 0.5
+  },
+  {
+    "activityNumber": 3,
+    "type": "Cooling",
+    "name": "Afwezig",
+    "temperature": 25.0,
+    "setPointMin": 20.0,
+    "setPointMax": 30.0,
+    "increment": 0.5
+  },
+  {
+    "activityNumber": 4,
+    "type": "Cooling",
+    "name": "Werken",
+    "temperature": 25.0,
+    "setPointMin": 20.0,
+    "setPointMax": 30.0,
+    "increment": 0.5
+  },
+  {
+    "activityNumber": 5,
+    "type": "Cooling",
+    "name": "Comfort",
+    "temperature": 25.0,
+    "setPointMin": 20.0,
+    "setPointMax": 30.0,
+    "increment": 0.5
+  },
+  {
+    "activityNumber": 1,
+    "type": "Heating",
+    "name": "Thuis",
+    "temperature": 20.0,
+    "setPointMin": 5.0,
+    "setPointMax": 30.0,
+    "increment": 0.5
+  },
+  {
+    "activityNumber": 2,
+    "type": "Heating",
+    "name": "Slapen",
+    "temperature": 20.0,
+    "setPointMin": 5.0,
+    "setPointMax": 30.0,
+    "increment": 0.5
+  },
+  {
+    "activityNumber": 3,
+    "type": "Heating",
+    "name": "Afwezig",
+    "temperature": 19.0,
+    "setPointMin": 5.0,
+    "setPointMax": 30.0,
+    "increment": 0.5
+  },
+  {
+    "activityNumber": 4,
+    "type": "Heating",
+    "name": "Werken",
+    "temperature": 16.5,
+    "setPointMin": 5.0,
+    "setPointMax": 30.0,
+    "increment": 0.5
+  },
+  {
+    "activityNumber": 5,
+    "type": "Heating",
+    "name": "Comfort",
+    "temperature": 20.0,
+    "setPointMin": 5.0,
+    "setPointMax": 30.0,
+    "increment": 0.5
+  }
+]

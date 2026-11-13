@@ -1,0 +1,33 @@
+# Temporary temperature: asks for the temperature and the duration, then holds
+# that temperature until the end time. The zone must be in auto mode.
+# Replace climate.living_room with your climate entity.
+alias: Temporary temperature
+icon: mdi:timer-outline
+mode: single
+fields:
+  temperature:
+    name: Temperature
+    required: true
+    default: 21
+    selector:
+      number:
+        min: 5
+        max: 30
+        step: 0.5
+        unit_of_measurement: "°C"
+  duration:
+    name: Duration
+    required: true
+    default:
+      hours: 1
+      minutes: 0
+      seconds: 0
+    selector:
+      duration:
+sequence:
+  - action: remeha_home.set_temporary_override
+    target:
+      entity_id: climate.living_room
+    data:
+      temperature: "{{ temperature }}"
+      duration: "{{ duration }}"

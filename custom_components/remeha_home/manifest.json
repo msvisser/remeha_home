@@ -2,12 +2,12 @@
   "domain": "remeha_home",
   "name": "Remeha Home",
   "codeowners": [
-    "@msvisser"
+    "@hugo-leij"
   ],
   "config_flow": true,
-  "documentation": "https://github.com/msvisser/remeha_home",
+  "documentation": "https://github.com/hugo-leij/remeha_home",
   "integration_type": "device",
   "iot_class": "cloud_polling",
-  "issue_tracker": "https://github.com/msvisser/remeha_home/issues",
+  "issue_tracker": "https://github.com/hugo-leij/remeha_home/issues",
   "version": "0.0.0"
 }

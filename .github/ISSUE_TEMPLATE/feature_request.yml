@@ -1,0 +1,56 @@
+name: Request a feature
+description: Suggest a new feature or an improvement.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for your idea. Please search the [existing issues](https://github.com/hugo-leij/remeha_home/issues) first, to see if it has already been requested.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What do you want to do?
+      description: What would you like to do in Home Assistant that isn't possible now?
+      placeholder: I would like to [...], because [...].
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How could the integration support this? For example, a new entity, or a setting that is in the Remeha Home app.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: appliance
+    attributes:
+      label: Appliance type
+      description: What kind of Remeha appliance do you have?
+      options:
+        - Heat pump
+        - Hybrid (heat pump with a gas boiler)
+        - Gas boiler
+        - Other or don't know
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional information
+      description: Anything else that helps, such as screenshots of the Remeha Home app.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched the existing issues, and this feature hasn't been requested yet.
+          required: true
+        - label: I would like to help build this feature in a pull request.
+          required: false
