@@ -40,6 +40,15 @@ def supports_reduced_setpoint(hot_water_zone: dict) -> bool:
     return hot_water_zone.get("dhwType", "Tank") == "Tank"
 
 
+def reports_water_pressure(appliance: dict) -> bool:
+    """Return whether an appliance reports its water pressure.
+
+    Some boilers, such as a Brötje BOK19 with only an analog pressure gauge, report
+    no pressure (null) and waterPressureOK false, which would look like a problem.
+    """
+    return appliance.get("waterPressure") is not None
+
+
 def reports_dhw_temperature(hot_water_zone: dict) -> bool:
     """Return whether a hot water zone reports its water temperature.
 

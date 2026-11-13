@@ -33,7 +33,12 @@ from .coordinator import (
     get_producers,
 )
 from .schedule import heating_schedule, hot_water_schedule
-from .util import remeha_time, remeha_utc_time, reports_dhw_temperature
+from .util import (
+    remeha_time,
+    remeha_utc_time,
+    reports_dhw_temperature,
+    reports_water_pressure,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -76,6 +81,12 @@ async def async_setup_entry(
     for appliance in coordinator.data["appliances"]:
         appliance_id = appliance["applianceId"]
         for entity_description in APPLIANCE_SENSOR_TYPES:
+            if entity_description.key == "waterPressure" and not (
+                reports_water_pressure(appliance)
+            ):
+                # It would always be unknown, also remove the one created before
+                _async_remove_sensor(hass, appliance_id, entity_description.key)
+                continue
             entities.append(
                 RemehaHomeSensor(coordinator, appliance_id, entity_description)
             )

@@ -16,7 +16,11 @@ from homeassistant.components.binary_sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ServiceValidationError
-from homeassistant.helpers import config_validation as cv, entity_platform
+from homeassistant.helpers import (
+    config_validation as cv,
+    entity_platform,
+    entity_registry as er,
+)
 from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.entity import DeviceInfo, Entity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -32,7 +36,7 @@ from .const import (
     HOT_WATER_ZONE_OPTIMIZATION_BINARY_SENSOR_TYPES,
 )
 from .coordinator import RemehaHomeUpdateCoordinator
-from .util import remeha_time
+from .util import remeha_time, reports_water_pressure
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -40,6 +44,8 @@ SERVICE_SET_HOLIDAY_MODE = "set_holiday_mode"
 SERVICE_CANCEL_HOLIDAY_MODE = "cancel_holiday_mode"
 ATTR_START_DATE = "start_date"
 ATTR_END_DATE = "end_date"
+
+WATER_PRESSURE_OK = "waterPressureOK"
 
 # The API applies changes a few seconds after the request
 REFRESH_DELAY = 15
@@ -71,10 +77,18 @@ async def async_setup_entry(
         entities.append(
             RemehaHomeHolidayModeBinarySensor(coordinator, api, appliance_id)
         )
+        appliance_types = APPLIANCE_BINARY_SENSOR_TYPES
+        if not reports_water_pressure(appliance):
+            # Without a pressure the problem sensor would show a problem that isn't
+            # there, also remove the one created before
+            appliance_types = [
+                (description, transform)
+                for description, transform in appliance_types
+                if description.key != WATER_PRESSURE_OK
+            ]
+            _async_remove_binary_sensor(hass, appliance_id, WATER_PRESSURE_OK)
         entities.extend(
-            _binary_sensors(
-                coordinator, appliance, appliance_id, APPLIANCE_BINARY_SENSOR_TYPES
-            )
+            _binary_sensors(coordinator, appliance, appliance_id, appliance_types)
         )
 
         for climate_zone in appliance["climateZones"]:
@@ -104,6 +118,16 @@ async def async_setup_entry(
             )
 
     async_add_entities(entities)
+
+
+def _async_remove_binary_sensor(hass: HomeAssistant, item_id: str, key: str) -> None:
+    """Remove a binary sensor that is no longer created from the entity registry."""
+    entity_registry = er.async_get(hass)
+    unique_id = "_".join([DOMAIN, item_id, key])
+    if entity_id := entity_registry.async_get_entity_id(
+        "binary_sensor", DOMAIN, unique_id
+    ):
+        entity_registry.async_remove(entity_id)
 
 
 def _lookup(data: dict | None, key: str) -> tuple[bool, Any]:
@@ -158,6 +182,12 @@ class RemehaHomeBinarySensor(CoordinatorEntity, BinarySensorEntity):
         """Return the measurement value for this sensor, or None when not reported."""
         found, value = _lookup(self._data, self.entity_description.key)
         if not found or value is None:
+            return None
+        if (
+            self.entity_description.key == WATER_PRESSURE_OK
+            and not reports_water_pressure(self._data)
+        ):
+            # Without a pressure, waterPressureOK false doesn't mean a problem
             return None
 
         return self.transform_func(value)
