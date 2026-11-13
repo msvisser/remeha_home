@@ -375,6 +375,23 @@ Returns the name of the appliance and its gateways.
 ```
 </details>
 
+### Pre-heat
+```http
+POST /appliances/{appliance_id}/preheat
+```
+
+Turns pre-heat on or off for the climate zones of the appliance, when it reports `capabilityPreHeat: true`.
+The body lists every climate zone of the appliance, so send the current value of the zones that don't change.
+The setting is reported per zone in `preHeat.enabled`; `preHeat.active` shows when the zone starts heating early.
+```json
+{
+  "climateZones": [
+    {"climateZoneId": "<climate zone id>", "preHeatEnabled": true}
+  ]
+}
+```
+This request comes from the [lowtide-lab fork](https://github.com/lowtide-lab/remeha_home_baxi_hvac).
+
 ### Holiday mode
 ```http
 POST /appliances/{appliance_id}/holidayschedule

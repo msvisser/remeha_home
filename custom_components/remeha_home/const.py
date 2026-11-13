@@ -335,7 +335,7 @@ CLIMATE_ZONE_BINARY_SENSOR_TYPES = [
     (
         BinarySensorEntityDescription(
             key="preHeat.active",
-            name="Pre-heat",
+            name="Pre-heat active",
             icon="mdi:clock-start",
         ),
         lambda value: bool(value),

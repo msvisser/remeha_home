@@ -10,6 +10,7 @@ from homeassistant.components.switch import (
     SwitchEntityDescription,
 )
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity import DeviceInfo
@@ -38,6 +39,14 @@ async def async_setup_entry(
             entities.append(
                 RemehaHomeFireplaceModeSwitch(api, coordinator, climate_zone_id)
             )
+            if appliance.get("capabilityPreHeat") and isinstance(
+                (climate_zone.get("preHeat") or {}).get("enabled"), bool
+            ):
+                entities.append(
+                    RemehaHomePreHeatSwitch(
+                        api, coordinator, appliance["applianceId"], climate_zone_id
+                    )
+                )
 
         for hot_water_zone in appliance["hotWaterZones"]:
             if hot_water_zone.get("capabilityBoostMode", True):
@@ -210,4 +219,83 @@ class RemehaHomeDhwBoostSwitch(CoordinatorEntity, SwitchEntity):
             self.async_write_ha_state()
             raise
 
+        await self.coordinator.async_request_refresh()
+
+
+class RemehaHomePreHeatSwitch(CoordinatorEntity, SwitchEntity):
+    """Switch to turn pre-heat of a climate zone on or off.
+
+    With pre-heat on, the zone starts heating early to reach the next setpoint of
+    the clock program on time. The Pre-heat active binary sensor shows when it does.
+    """
+
+    _attr_has_entity_name = True
+    _attr_name = "Pre-heat"
+    _attr_icon = "mdi:clock-start"
+    _attr_entity_category = EntityCategory.CONFIG
+
+    def __init__(
+        self,
+        api: RemehaHomeAPI,
+        coordinator: RemehaHomeUpdateCoordinator,
+        appliance_id: str,
+        climate_zone_id: str,
+    ) -> None:
+        """Create a Remeha Home pre-heat switch entity."""
+        super().__init__(coordinator)
+        self.api = api
+        self.appliance_id = appliance_id
+        self.climate_zone_id = climate_zone_id
+        self._attr_unique_id = "_".join([DOMAIN, climate_zone_id, "preHeat.enabled"])
+
+    @property
+    def _pre_heat(self) -> dict:
+        """Return the pre-heat data of the climate zone."""
+        return (self.coordinator.get_by_id(self.climate_zone_id) or {}).get(
+            "preHeat"
+        ) or {}
+
+    @property
+    def is_on(self) -> bool | None:
+        """Return whether pre-heat is on."""
+        enabled = self._pre_heat.get("enabled")
+        return enabled if isinstance(enabled, bool) else None
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device info for this device."""
+        return self.coordinator.get_device_info(self.climate_zone_id)
+
+    async def async_turn_on(self, **kwargs) -> None:
+        """Turn pre-heat on."""
+        await self._async_set(True)
+
+    async def async_turn_off(self, **kwargs) -> None:
+        """Turn pre-heat off."""
+        await self._async_set(False)
+
+    async def _async_set(self, enabled: bool) -> None:
+        """Send pre-heat for all zones of the appliance, with this one changed."""
+        enabled_by_zone = {}
+        for appliance in self.coordinator.data.get("appliances", []):
+            if appliance.get("applianceId") != self.appliance_id:
+                continue
+            for zone in appliance.get("climateZones", []):
+                zone_enabled = (zone.get("preHeat") or {}).get("enabled")
+                if isinstance(zone_enabled, bool):
+                    enabled_by_zone[zone["climateZoneId"]] = zone_enabled
+        enabled_by_zone[self.climate_zone_id] = enabled
+        _LOGGER.debug("Setting pre-heat to %s", enabled_by_zone)
+
+        # Show the new state until the next poll, and revert it when the API refuses
+        pre_heat = self._pre_heat
+        previous = pre_heat.get("enabled")
+        pre_heat["enabled"] = enabled
+        self.async_write_ha_state()
+        try:
+            await self.api.async_set_pre_heat(self.appliance_id, enabled_by_zone)
+        except Exception:
+            pre_heat["enabled"] = previous
+            self.async_write_ha_state()
+            raise
         await self.coordinator.async_request_refresh()
