@@ -40,3 +40,11 @@ COP over reported days. A flag indicates whether the requested period is
 complete. The API's gas kWh differ from the m³ shown by the existing gas
 sensors. Remeha's figures are **estimates**, not independently metered
 values. No entities or Home Assistant statistics are changed.
+
+Each day and the period also have the totals of the appliance as Remeha reports
+them: `appliance_heating_consumed_kwh`, `appliance_heating_delivered_kwh`,
+`appliance_hot_water_consumed_kwh` and `appliance_hot_water_delivered_kwh`.
+On an appliance with one heat source, such as an oil or gas boiler, these are
+its figures, also when Remeha reports its heat source without a type, which
+leaves the heat pump and gas fields empty. On a hybrid system they add up the
+heat pump and the gas boiler, so use the heat pump and gas fields there.
